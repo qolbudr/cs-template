@@ -1,0 +1,98 @@
+[
+    {
+        "iconUrl": "https://nobarbolagratis.live/uploads/Untitled-1.png",
+        "apiVersion": 1,
+        "repositoryUrl": "https://github.com/qolbudr/cs-template",
+        "fileSize": 13306,
+        "status": 1,
+        "authors": [
+            "qolbudr"
+        ],
+        "tvTypes": [
+            "AnimeMovie",
+            "Anime"
+        ],
+        "version": 3,
+        "internalName": "AnimeindoProvider",
+        "description": "Animeindo plugin repository",
+        "url": "https://raw.githubusercontent.com/qolbudr/cs-template/builds/AnimeindoProvider.cs3",
+        "name": "AnimeindoProvider"
+    },
+    {
+        "iconUrl": "https://nobarbolagratis.live/uploads/Untitled-1.png",
+        "apiVersion": 1,
+        "repositoryUrl": "https://github.com/qolbudr/cs-template",
+        "fileSize": 11161,
+        "status": 1,
+        "authors": [
+            "qolbudr"
+        ],
+        "tvTypes": [
+            "Live"
+        ],
+        "version": 8,
+        "internalName": "BolaaProvider",
+        "description": "Bolaa plugin repository",
+        "url": "https://raw.githubusercontent.com/qolbudr/cs-template/builds/BolaaProvider.cs3",
+        "name": "BolaaProvider"
+    },
+    {
+        "iconUrl": "https://sg-res.9appsdownloading.com/sg/res/jpg/c6/16/398d1dc95da0016cef52175d11e2-if31.jpg",
+        "apiVersion": 1,
+        "repositoryUrl": "https://github.com/qolbudr/cs-template",
+        "fileSize": 16817,
+        "status": 1,
+        "authors": [
+            "qolbudr"
+        ],
+        "tvTypes": [
+            "Cartoon",
+            "TvSeries",
+            "Movie"
+        ],
+        "version": 12,
+        "internalName": "DubindoProvider",
+        "description": "Dubindo plugin repository",
+        "url": "https://raw.githubusercontent.com/qolbudr/cs-template/builds/DubindoProvider.cs3",
+        "name": "DubindoProvider"
+    },
+    {
+        "iconUrl": "https://hqnime.com/wp-content/uploads/2023/04/Hqnime-ico.webp",
+        "apiVersion": 1,
+        "repositoryUrl": "https://github.com/qolbudr/cs-template",
+        "fileSize": 18434,
+        "status": 1,
+        "authors": [
+            "qolbudr"
+        ],
+        "tvTypes": [
+            "AnimeMovie",
+            "Anime"
+        ],
+        "version": 7,
+        "internalName": "HqnimeProvider",
+        "description": "Hqnime plugin repository",
+        "url": "https://raw.githubusercontent.com/qolbudr/cs-template/builds/HqnimeProvider.cs3",
+        "name": "HqnimeProvider"
+    },
+    {
+        "iconUrl": "https://pojook.com/wp-content/uploads/2021/12/ico.png",
+        "apiVersion": 1,
+        "repositoryUrl": "https://github.com/qolbudr/cs-template",
+        "fileSize": 31821,
+        "status": 1,
+        "authors": [
+            "qolbudr"
+        ],
+        "tvTypes": [
+            "AsianDrama",
+            "TvSeries",
+            "Movie"
+        ],
+        "version": 16,
+        "internalName": "PojookProvider",
+        "description": "Pojook plugin repository",
+        "url": "https://raw.githubusercontent.com/qolbudr/cs-template/builds/PojookProvider.cs3",
+        "name": "PojookProvider"
+    }
+]
