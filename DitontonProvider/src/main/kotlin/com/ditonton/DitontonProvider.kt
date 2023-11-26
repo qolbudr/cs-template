@@ -93,7 +93,9 @@ class DitontonProvider : MainAPI() {
     }
 
     private suspend fun String.getIframe() : String {
-        return app.get(this, referer = "https://ditonton.bid").document.select("#loadPlayer iframe").attr("src")
+        val src = app.get(this, referer = "https://ditonton.bid").document.select("#loadPlayer iframe").attr("src")
+        val document = app.get(src).document
+        return document.select("iframe").attr("src")
     }
 
     open class Emturbovid : ExtractorApi() {
