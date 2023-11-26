@@ -86,18 +86,18 @@ class DitontonProvider : MainAPI() {
         document.select("[target=iframe]").map {
             fixUrl(it.attr("href"))
         }.apmap {
-            loadExtractor(it.getIframe(), "https://ditonton.bid", subtitleCallback, callback)
+            loadExtractor("https://emturbovid.com/t/DDOG6t8HIxlK9Vul9H3W", "https://ditonton.bid", subtitleCallback, callback)
         }
 
         return true
     }
 
-    private suspend fun String.getIframe() : String {
-        val header = mapOf("referer" to "https://ditonton.bid")
-        val src = app.get(this, headers = header).document.select("#loadPlayer iframe").attr("src")
-        val document = app.get(src, headers = header).document
-        return document.select("iframe").attr("src")
-    }
+//    private suspend fun String.getIframe() : String {
+//        val header = mapOf("referer" to "https://ditonton.bid")
+//        val src = app.get(this, headers = header).document.select("#loadPlayer iframe").attr("src")
+//        val document = app.get(src, headers = header).document
+//        return document.select("iframe").attr("src")
+//    }
 
     open class Emturbovid : ExtractorApi() {
         override val name = "Emturbovid"
