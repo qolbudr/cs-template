@@ -83,23 +83,23 @@ class DitontonProvider : MainAPI() {
 
     // loadlink
     override suspend fun loadLinks(data: String, isCasting: Boolean, subtitleCallback: (SubtitleFile) -> Unit, callback: (ExtractorLink) -> Unit): Boolean {
-        val document = app.get(data).document
-        document.select("[target=iframe]").map {
-            fixUrl(it.attr("href"))
-        }.apmap {
-            Log.i("LOG EXTRACTOR", "LOADED URL : ${it.getIframe()}")
-            loadExtractor(it.getIframe(), "https://ditonton.bid", subtitleCallback, callback)
-        }
+//        val document = app.get(data).document
+//        document.select("[target=iframe]").map {
+//            fixUrl(it.attr("href"))
+//        }.apmap {
+            Log.i("LOG EXTRACTOR", "LOADED URL https://emturbovid.com/t/DDOG6t8HIxlK9Vul9H3W")
+            loadExtractor("https://emturbovid.com/t/DDOG6t8HIxlK9Vul9H3W", "https://ditonton.bid", subtitleCallback, callback)
+//        }
 
         return true
     }
 
-    private suspend fun String.getIframe() : String {
-        val header = mapOf("referer" to "https://ditonton.bid")
-        val src = app.get(this, headers = header).document.select("#loadPlayer iframe").attr("src")
-        val document = app.get(src, headers = header).document
-        return document.select("iframe").attr("src")
-    }
+//    private suspend fun String.getIframe() : String {
+//        val header = mapOf("referer" to "https://ditonton.bid")
+//        val src = app.get(this, headers = header).document.select("#loadPlayer iframe").attr("src")
+//        val document = app.get(src, headers = header).document
+//        return document.select("iframe").attr("src")
+//    }
 
     open class Emturbovid : ExtractorApi() {
         override val name = "Emturbovid"
@@ -112,7 +112,7 @@ class DitontonProvider : MainAPI() {
                 subtitleCallback: (SubtitleFile) -> Unit,
                 callback: (ExtractorLink) -> Unit
         ) {
-            Log.i("LOG EXTRACTOR", "EXTRACT URL : $url")
+            Log.i("LOG EXTRACTOR", "LOADED URL $url")
             val response = app.get(url, referer = referer)
             val m3u8 = Regex("[\"'](.*?master\\.m3u8.*?)[\"']").find(response.text)?.groupValues?.getOrNull(1)
             M3u8Helper.generateM3u8(
