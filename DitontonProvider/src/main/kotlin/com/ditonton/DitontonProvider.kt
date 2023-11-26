@@ -84,7 +84,7 @@ class DitontonProvider : MainAPI() {
     override suspend fun loadLinks(data: String, isCasting: Boolean, subtitleCallback: (SubtitleFile) -> Unit, callback: (ExtractorLink) -> Unit): Boolean {
         val document = app.get(data).document
         document.select("[target=iframe]").map {
-            fixUrl(it.select("a").attr("href"))
+            fixUrl(it.attr("href"))
         }.apmap {
             loadExtractor(it, "https://ditonton.bid", subtitleCallback, callback)
         }
