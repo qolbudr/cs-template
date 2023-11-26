@@ -86,10 +86,14 @@ class DitontonProvider : MainAPI() {
         document.select("[target=iframe]").map {
             fixUrl(it.attr("href"))
         }.apmap {
-            loadExtractor(it, "https://ditonton.bid", subtitleCallback, callback)
+            loadExtractor(it.getIframe(), "https://ditonton.bid", subtitleCallback, callback)
         }
 
         return true
+    }
+
+    private suspend fun String.getIframe() : String {
+        return app.get(this, referer = "https://ditonton.bid").document.select("#loadPlayer iframe").attr("src")
     }
 
     open class Emturbovid : ExtractorApi() {
