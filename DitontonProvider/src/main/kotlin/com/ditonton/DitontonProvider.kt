@@ -93,8 +93,9 @@ class DitontonProvider : MainAPI() {
     }
 
     private suspend fun String.getIframe() : String {
-        val src = app.get(this, referer = "https://ditonton.bid").document.select("#loadPlayer iframe").attr("src")
-        val document = app.get(src).document
+        val header = mapOf("referer" to "https://ditonton.bid")
+        val src = app.get(this, headers = header).document.select("#loadPlayer iframe").attr("src")
+        val document = app.get(src, headers = header).document
         return document.select("iframe").attr("src")
     }
 
