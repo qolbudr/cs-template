@@ -82,12 +82,12 @@ class DitontonProvider : MainAPI() {
 
     // loadlink
     override suspend fun loadLinks(data: String, isCasting: Boolean, subtitleCallback: (SubtitleFile) -> Unit, callback: (ExtractorLink) -> Unit): Boolean {
-        val document = app.get(data).document
-        document.select("[target=iframe]").map {
-            fixUrl(it.attr("href"))
-        }.apmap {
+//        val document = app.get(data).document
+//        document.select("[target=iframe]").map {
+//            fixUrl(it.attr("href"))
+//        }.apmap {
             loadExtractor("https://emturbovid.com/t/DDOG6t8HIxlK9Vul9H3W", "https://ditonton.bid", subtitleCallback, callback)
-        }
+//        }
 
         return true
     }
