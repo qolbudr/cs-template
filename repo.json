@@ -1,0 +1,8 @@
+{
+  "name": "CS Indo repository",
+  "description": "Providers indonesian",
+  "manifestVersion": 1,
+  "pluginLists": [
+    "https://raw.githubusercontent.com/qolbudr/cs-template/builds/plugins.json"
+  ]
+}
