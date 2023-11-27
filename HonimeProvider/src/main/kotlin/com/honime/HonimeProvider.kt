@@ -94,11 +94,7 @@ class HonimeProvider : MainAPI() {
                 this.plot = description
             }
         } else {
-            val newURL = document.select(".eplister li a")?.reversed()?.first()?.attr("href") ?: "";
-
             val episodeList = ArrayList<Episode>();
-
-            val seasonNumber = document.select(".spe span:nth-child(5)").text().trim()
 
             document.select(".eplister li").reversed().mapNotNull {
                 val epName = it.select(".epl-title").text().trim()
@@ -124,7 +120,9 @@ class HonimeProvider : MainAPI() {
             val code = it.attr("value")
 
             if(code.isNotEmpty()) {
-                val embedUrl = base64Decode(code)
+                val myiFrame = base64Decode(code)
+
+                val embedUrl = Regex("(?<=src=\")(.*)(?>\" frame)").find(myiFrame)?.groupValues?.getOrNull(1) ?: ""
 
                 if (embedUrl.contains("qoop")) {
                     //qoop
