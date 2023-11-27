@@ -6,6 +6,7 @@ import com.lagradost.cloudstream3.utils.ExtractorLink
 import com.lagradost.cloudstream3.utils.M3u8Helper
 import com.lagradost.cloudstream3.utils.loadExtractor
 import org.jsoup.nodes.Element
+import java.util.Base64.*
 
 class PusatfilmProvider : MainAPI() {
     override var mainUrl = "https://139.99.115.223"
@@ -94,13 +95,13 @@ class PusatfilmProvider : MainAPI() {
                 subtitleCallback: (SubtitleFile) -> Unit,
                 callback: (ExtractorLink) -> Unit
         ) {
-//            val document = app.get(url, referer = referer).document
-//            val dataFrame = document.selectFirst("#dropdown-server li a")?.attr("data-frame") ?: ""
-//
-//            val url =  android.util.Base64.decode(dataFrame, android.util.Base64.DEFAULT)
-//            val ref = android.util.Base64.encode("https://139.99.115.223/".toByteArray(), android.util.Base64.DEFAULT)
+            val document = app.get(url, referer = referer).document
+            val dataFrame = document.selectFirst("#dropdown-server li a")?.attr("data-frame") ?: ""
 
-            val response = app.get("https://uplayer.xyz/play/78Mw5zFeeJb6dlgUzpow2Y8CanKx3AYTytHZ14miuVJOQfWJpMiuVsLsnCiUwLnCqryHVbsUxpUP2L33J3PdpENTIoaQ0LRz3KgSpGTqmSByBsH99Kaaxp4jfDdZvYqV?si=YCPjZfm2ACciGWC&r=aHR0cHM6Ly8xMzkuOTkuMTE1LjIyMy8=", referer = referer)
+            val url =  base64Decode(dataFrame)
+            val ref = base64Encode("https://139.99.115.223/".toByteArray())
+
+            val response = app.get("$url&r=$ref", referer = referer)
 
             val m3u8 = Regex("[\"'](.*?master\\.m3u8.*?)[\"']").find(response.text)?.groupValues?.getOrNull(1)
             M3u8Helper.generateM3u8(
