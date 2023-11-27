@@ -28,7 +28,7 @@ import org.jsoup.nodes.Element
 class HonimeProvider : MainAPI() {
     override var mainUrl = "https://honime.com"
     override var name = "Honime"
-    override val supportedTypes = setOf(TvType.Anime, TvType.AnimeMovie)
+    override val supportedTypes = setOf(TvType.Anime, TvType.TvSeries, TvType.Movie)
     override var lang = "id"
     override val hasMainPage = true
 
@@ -80,10 +80,10 @@ class HonimeProvider : MainAPI() {
         val type = if(typeRaw.contains("Movie")) {
             TvType.Movie
         } else {
-            TvType.Anime
+            TvType.TvSeries
         }
 
-        if(type == TvType.AnimeMovie) {
+        if(type == TvType.Movie) {
             val newURL = document.selectFirst(".eplister li a")?.attr("href") ?: "";
 
             return newMovieLoadResponse(title, newURL, type, newURL) {
@@ -121,39 +121,45 @@ class HonimeProvider : MainAPI() {
         val document = app.get(data).document
 
         document.select(".mirror option").mapNotNull {
-            val embedUrl = base64Decode(it.attr("value"))
+            val code = it.attr("value")
 
-            if(embedUrl.contains("qoop")) {
-                //qoop
-                val iframeText = app.get(embedUrl).text
+            if(code.isNotEmpty()) {
+                val embedUrl = base64Decode(code)
 
-                val keyFrame = Regex("(?<=kaken = \")(.*)(?=\",)").find(iframeText)?.groupValues?.getOrNull(1) ?: ""
+                if (embedUrl.contains("qoop")) {
+                    //qoop
+                    val iframeText = app.get(embedUrl).text
 
-                val qoopUrl = "https://s2.qoop.my.id/api/?$keyFrame";
+                    val keyFrame = Regex("(?<=kaken = \")(.*)(?=\",)").find(iframeText)?.groupValues?.getOrNull(1)
+                            ?: ""
 
-                val result = app.get(qoopUrl).text
+                    val qoopUrl = "https://s2.qoop.my.id/api/?$keyFrame";
 
-                val json = parseJson<ResponseSource>(result);
+                    val result = app.get(qoopUrl).text
 
-                val sourceTitle = json.title ?: ""
+                    val json = parseJson<ResponseSource>(result);
 
-                val sourceUrl = json.source?.firstOrNull()?.file ?: ""
+                    val sourceTitle = json.title ?: ""
 
-
-                callback.invoke(
-                        ExtractorLink(sourceUrl, sourceTitle, sourceUrl, referer = sourceUrl, quality = 0)
-                )
+                    val sourceUrl = json.source?.firstOrNull()?.file ?: ""
 
 
-            } else {
-                // Google Video
-                val iframeText = app.get(embedUrl).text
+                    callback.invoke(
+                            ExtractorLink(sourceUrl, sourceTitle, sourceUrl, referer = sourceUrl, quality = 0)
+                    )
 
-                val source = Regex("(?<=play_url\":\")(.*)(?=\",)").find(iframeText)?.groupValues?.getOrNull(1) ?: ""
 
-                callback.invoke(
-                        ExtractorLink(source, "Google Video", source, referer = source, quality = 480)
-                )
+                } else {
+                    // Google Video
+                    val iframeText = app.get(embedUrl).text
+
+                    val source = Regex("(?<=play_url\":\")(.*)(?=\",)").find(iframeText)?.groupValues?.getOrNull(1)
+                            ?: ""
+
+                    callback.invoke(
+                            ExtractorLink(source, "Google Video", source, referer = source, quality = 480)
+                    )
+                }
             }
         }
         return true
