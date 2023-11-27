@@ -6,7 +6,6 @@ import com.lagradost.cloudstream3.utils.ExtractorLink
 import com.lagradost.cloudstream3.utils.M3u8Helper
 import com.lagradost.cloudstream3.utils.loadExtractor
 import org.jsoup.nodes.Element
-import java.util.Base64.*
 
 class PusatfilmProvider : MainAPI() {
     override var mainUrl = "https://139.99.115.223"
@@ -21,9 +20,16 @@ class PusatfilmProvider : MainAPI() {
         val posterUrl = this.selectFirst("img")?.attr("src")
         val quality = this.selectFirst("div.gmr-quality-item a")?.text()?.trim() ?: ""
 
-        return newMovieSearchResponse(title, href, TvType.Movie) {
-            this.posterUrl = posterUrl
-            addQuality(quality)
+        return if(href.contains("tv")) {
+            newTvSeriesSearchResponse(title, href, TvType.TvSeries) {
+                this.posterUrl = posterUrl
+                addQuality(quality)
+            }
+        } else {
+            newMovieSearchResponse(title, href, TvType.Movie) {
+                this.posterUrl = posterUrl
+                addQuality(quality)
+            }
         }
     }
 
@@ -43,7 +49,7 @@ class PusatfilmProvider : MainAPI() {
     }
 
     override suspend fun search(query: String): List<SearchResponse>? {
-        val document = app.get("$mainUrl/?s=$query").document
+        val document = app.get("$mainUrl/?s=$query&post_type[]=post&post_type[]=tv").document
         val result = document.select("article.item").mapNotNull {
             it.toSearchResult()
         }
@@ -54,26 +60,54 @@ class PusatfilmProvider : MainAPI() {
     override suspend fun load(url: String): LoadResponse? {
         val document = app.get(url).document
         val title = document.selectFirst("h1.entry-title")?.text()?.trim() ?: ""
-        val poster = document.selectFirst("img.attachment-thumbnail")?.attr("src")
-        val tags = document.select(".gmr-moviedata:nth-child(5) a")?.mapNotNull { it.text().trim() }
+        val poster = document.selectFirst("img.attachment-thumbnail")?.attr("src")?.replace("-60x90", "")
+        val tags = document.select("[rel*=category]")?.mapNotNull { it.text().trim() }
         val description = document.selectFirst(".entry-content p")?.text()?.trim()
         val trailer = document.selectFirst("a.gmr-trailer-popup")?.attr("href")
         val rating = document.selectFirst(".gmr-meta-rating span:nth-child(2)")?.text()?.toRatingInt()
-//        val actors = document.select(".gmr-moviedata:nth-child(14) a'")?.mapNotNull { it.text().trim() }
-        val tvType = TvType.Movie
+        val actors = document.select("[itemprop=actors] a")?.mapNotNull { it.text().trim() }
+
+        val tvType = if(url.contains("tv")) {
+            TvType.TvSeries
+        } else {
+            TvType.Movie
+        }
 
         val recommendation = document.select("div.idmuvi-core article.item").mapNotNull {
             it.toSearchResult()
         }
 
-        return newMovieLoadResponse(title, url, tvType, url) {
-            this.posterUrl = poster
-            this.tags = tags
-            addTrailer(trailer)
-            this.rating = rating
-//            addActors(actors)
-            this.plot = description
-            this.recommendations = recommendation
+        if(tvType == TvType.Movie) {
+            return newMovieLoadResponse(title, url, tvType, url) {
+                this.posterUrl = poster
+                this.tags = tags
+                addTrailer(trailer)
+                this.rating = rating
+                addActors(actors)
+                this.plot = description
+                this.recommendations = recommendation
+            }
+        } else {
+            var seasonNumber = 0;
+            var listEpisode = ArrayList<Episode>();
+
+            document.select(".custom-epslist").reversed().mapNotNull {
+                seasonNumber++;
+                var epsNumber = 0;
+                it.select("a.s-eps").mapNotNull { episodes ->
+                    epsNumber++;
+                    val hrefEpisode = episodes.attr("href")
+                    val docEpisode = app.get(hrefEpisode).document
+                    val epsTitle = docEpisode.selectFirst(".gmr-moviedata:nth-child(3)")?.text()?.replace("Nama Episode:", "") ?: ""
+                    val epsPoster = docEpisode.selectFirst("img.attachment-thumbnail")?.attr("src")?.replace("-60x90", "")
+                    val epsDescription = document.selectFirst(".entry-content p")?.text()?.trim()
+                    val episodeItem = Episode(hrefEpisode, epsTitle, seasonNumber, epsNumber, epsPoster, description = epsDescription)
+
+                    listEpisode.add(episodeItem);
+                }
+            }
+
+            return newTvSeriesLoadResponse(title, url, tvType, listEpisode.toList())
         }
     }
 
