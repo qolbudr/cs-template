@@ -58,7 +58,7 @@ class PusatfilmProvider : MainAPI() {
         val description = document.selectFirst(".entry-content p")?.text()?.trim()
         val trailer = document.selectFirst("a.gmr-trailer-popup")?.attr("href")
         val rating = document.selectFirst(".gmr-meta-rating span:nth-child(2)")?.text()?.toRatingInt()
-        val actors = document.select(".gmr-moviedata:nth-child(14) a'")?.mapNotNull { it.text().trim() }
+//        val actors = document.select(".gmr-moviedata:nth-child(14) a'")?.mapNotNull { it.text().trim() }
         val tvType = TvType.Movie
 
         val recommendation = document.select("div.idmuvi-core article.item").mapNotNull {
@@ -70,7 +70,7 @@ class PusatfilmProvider : MainAPI() {
             this.tags = tags
             addTrailer(trailer)
             this.rating = rating
-            addActors(actors)
+//            addActors(actors)
             this.plot = description
             this.recommendations = recommendation
         }
