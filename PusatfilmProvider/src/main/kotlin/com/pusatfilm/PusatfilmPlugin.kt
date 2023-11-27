@@ -11,6 +11,5 @@ class PusatfilmProviderPlugin: Plugin() {
         // All providers should be added in this manner. Please don't edit the providers list directly.
         registerMainAPI(PusatfilmProvider())
         registerExtractorAPI(PusatfilmProvider.Uplayer())
-        registerExtractorAPI(PusatfilmProvider.GdriveplayerTo())
     }
 }
