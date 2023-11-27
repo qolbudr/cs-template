@@ -128,14 +128,16 @@ class PusatfilmProvider : MainAPI() {
 
         var urlstream = ArrayList<String>()
 
-        val dataFrame = documentFrame.select("#dropdown-server li a").mapNotNull {
+        documentFrame.select("#dropdown-server li a").mapNotNull {
             val url =  base64Decode(it.attr("data-frame"))
             val ref = base64Encode("https://139.99.115.223/".toByteArray())
 
             var urlFinal = "$url&r=$ref";
 
-            if(urlFinal.contains("gdriveplayer")) {
-                urlFinal = "https:$urlFinal";
+            urlFinal = if(urlFinal.contains("gdriveplayer")) {
+                "https:$urlFinal";
+            } else {
+                urlFinal
             }
 
             urlstream.add(urlFinal)
