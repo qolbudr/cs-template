@@ -61,7 +61,7 @@ class PusatfilmProvider : MainAPI() {
         val document = app.get(url).document
         val title = document.selectFirst("h1.entry-title")?.text()?.trim() ?: ""
         val poster = document.selectFirst("img.attachment-thumbnail")?.attr("src")?.replace("-60x90", "")
-        val tags = document.select("[rel*=category]")?.mapNotNull { it.text().trim() }
+        val tags = document.select(".gmr-moviedata [rel*=category]")?.mapNotNull { it.text().trim() }
         val description = document.selectFirst(".entry-content p")?.text()?.trim()
         val trailer = document.selectFirst("a.gmr-trailer-popup")?.attr("href")
         val rating = document.selectFirst(".gmr-meta-rating span:nth-child(2)")?.text()?.toRatingInt()
@@ -100,14 +100,22 @@ class PusatfilmProvider : MainAPI() {
                     val docEpisode = app.get(hrefEpisode).document
                     val epsTitle = docEpisode.selectFirst(".gmr-moviedata:nth-child(3)")?.text()?.replace("Nama Episode:", "") ?: ""
                     val epsPoster = docEpisode.selectFirst("img.attachment-thumbnail")?.attr("src")?.replace("-60x90", "")
-                    val epsDescription = document.selectFirst(".entry-content p")?.text()?.trim()
+                    val epsDescription = docEpisode.selectFirst(".entry-content p")?.text()?.trim()
                     val episodeItem = Episode(hrefEpisode, epsTitle, seasonNumber, epsNumber, epsPoster, description = epsDescription)
 
                     listEpisode.add(episodeItem);
                 }
             }
 
-            return newTvSeriesLoadResponse(title, url, tvType, listEpisode.toList())
+            return newTvSeriesLoadResponse(title, url, tvType, listEpisode.toList()) {
+                this.posterUrl = poster
+                this.tags = tags
+                addTrailer(trailer)
+                this.rating = rating
+                addActors(actors)
+                this.plot = description
+                this.recommendations = recommendation
+            }
         }
     }
 
