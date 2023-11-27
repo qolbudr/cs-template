@@ -148,9 +148,9 @@ class PusatfilmProvider : MainAPI() {
         return true;
     }
 
-    open class Kotakajaib : ExtractorApi() {
-        override val name = "KotakAjaib"
-        override val mainUrl = "https://kotakajaib.me"
+    open class Uplayer : ExtractorApi() {
+        override val name = "UplayerXYZ"
+        override val mainUrl = "https://uplayer.xyz"
         override val requiresReferer = true
 
         override suspend fun getUrl(
@@ -170,11 +170,5 @@ class PusatfilmProvider : MainAPI() {
                     mainUrl
             ).forEach(callback)
         }
-    }
-
-    open class GdriveplayerTo : Gdriveplayer() {
-        override val name = "GDrivePlayerTo"
-        override val mainUrl = "https://gdriveplayer.to"
-        override val requiresReferer = true
     }
 }
