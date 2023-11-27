@@ -86,7 +86,7 @@ class HonimeProvider : MainAPI() {
         if(type == TvType.Movie) {
             val newURL = document.selectFirst(".eplister li a")?.attr("href") ?: "";
 
-            return newMovieLoadResponse(title, newURL, type, newURL) {
+            return newMovieLoadResponse(title, url, type, newURL) {
                 this.posterUrl = poster
                 this.tags = tags
                 this.rating = rating
@@ -107,7 +107,7 @@ class HonimeProvider : MainAPI() {
                 episodeList.add(Episode(epUrl, epName, episode = epNumber))
             }
 
-            return newTvSeriesLoadResponse(title, newURL, type, episodeList.toList()) {
+            return newTvSeriesLoadResponse(title, url, type, episodeList.toList()) {
                 this.posterUrl = poster
                 this.tags = tags
                 this.rating = rating
