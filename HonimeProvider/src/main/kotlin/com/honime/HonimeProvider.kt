@@ -11,6 +11,7 @@ import com.lagradost.cloudstream3.SubtitleFile
 import com.lagradost.cloudstream3.TvType
 import com.lagradost.cloudstream3.addQuality
 import com.lagradost.cloudstream3.app
+import com.lagradost.cloudstream3.base64Decode
 import com.lagradost.cloudstream3.mainPageOf
 import com.lagradost.cloudstream3.newAnimeLoadResponse
 import com.lagradost.cloudstream3.newHomePageResponse
@@ -18,6 +19,8 @@ import com.lagradost.cloudstream3.newMovieSearchResponse
 import com.lagradost.cloudstream3.newTvSeriesLoadResponse
 import com.lagradost.cloudstream3.newTvSeriesSearchResponse
 import com.lagradost.cloudstream3.toRatingInt
+import com.lagradost.cloudstream3.utils.AppUtils.parseJson
+import com.lagradost.cloudstream3.utils.AppUtils.toJson
 import com.lagradost.cloudstream3.utils.ExtractorLink
 import org.jsoup.nodes.Element
 
@@ -115,16 +118,54 @@ class HonimeProvider : MainAPI() {
 
     override suspend fun loadLinks(data: String, isCasting: Boolean, subtitleCallback: (SubtitleFile) -> Unit, callback: (ExtractorLink) -> Unit): Boolean {
         val document = app.get(data).document
-        val iframe = document.select("iframe").attr("src")
 
-        val iframeText = app.get(iframe).text
+        document.select(".mirror option").mapNotNull {
+            val embedUrl = base64Decode(it.attr("value"))
 
-        val source = Regex("(?<=play_url\":\")(.*)(?=\",)").find(iframeText)?.groupValues?.getOrNull(1) ?: ""
+            if(embedUrl.contains("qoop")) {
+                //qoop
+                val iframeText = app.get(embedUrl).text
 
-        callback.invoke(
-                ExtractorLink(source, "Google Video", source, referer = source, quality = 480)
-        )
+                val keyFrame = Regex("(?<=kaken = \")(.*)(?=\",)").find(iframeText)?.groupValues?.getOrNull(1) ?: ""
 
+                val qoopUrl = "https://s2.qoop.my.id/api/?$keyFrame";
+
+                val result = app.get(qoopUrl).text
+
+                val json = parseJson<ResponseSource>(result);
+
+                val sourceTitle = json.title ?: ""
+
+                val sourceUrl = json.source?.firstOrNull()?.file ?: ""
+
+
+                callback.invoke(
+                        ExtractorLink(sourceUrl, sourceTitle, sourceUrl, referer = sourceUrl, quality = 0)
+                )
+
+
+            } else {
+                // Google Video
+                val iframeText = app.get(embedUrl).text
+
+                val source = Regex("(?<=play_url\":\")(.*)(?=\",)").find(iframeText)?.groupValues?.getOrNull(1) ?: ""
+
+                callback.invoke(
+                        ExtractorLink(source, "Google Video", source, referer = source, quality = 480)
+                )
+            }
+        }
         return true
     }
+
+    data class SourceList(
+        val file: String?,
+        val type: String?,
+        val label: String?,
+    )
+
+    data class ResponseSource(
+            val title: String?,
+            val source: List<SourceList>?
+    )
 }
