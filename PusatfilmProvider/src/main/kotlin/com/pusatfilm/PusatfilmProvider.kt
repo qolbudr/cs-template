@@ -1,6 +1,7 @@
 import com.lagradost.cloudstream3.*
 import com.lagradost.cloudstream3.LoadResponse.Companion.addActors
 import com.lagradost.cloudstream3.LoadResponse.Companion.addTrailer
+import com.lagradost.cloudstream3.extractors.Gdriveplayer
 import com.lagradost.cloudstream3.utils.ExtractorApi
 import com.lagradost.cloudstream3.utils.ExtractorLink
 import com.lagradost.cloudstream3.utils.M3u8Helper
@@ -123,7 +124,28 @@ class PusatfilmProvider : MainAPI() {
         val document = app.get(data).document
         val iframe = document.selectFirst(".gmr-embed-responsive iframe")?.attr("src") ?: ""
 
-        return loadExtractor(iframe, data, subtitleCallback, callback)
+        val documentFrame = app.get(iframe, referer = mainUrl).document
+
+        var urlstream = ArrayList<String>()
+
+        val dataFrame = documentFrame.select("#dropdown-server li a").mapNotNull {
+            val url =  base64Decode(it.attr("data-frame"))
+            val ref = base64Encode("https://139.99.115.223/".toByteArray())
+
+            var urlFinal = "$url&r=$ref";
+
+            if(urlFinal.contains("gdriveplayer")) {
+                urlFinal = "https:$urlFinal";
+            }
+
+            urlstream.add(urlFinal)
+        }
+
+        urlstream.toList().mapNotNull {
+            loadExtractor(it, data, subtitleCallback, callback)
+        }
+
+        return true;
     }
 
     open class Kotakajaib : ExtractorApi() {
@@ -137,13 +159,9 @@ class PusatfilmProvider : MainAPI() {
                 subtitleCallback: (SubtitleFile) -> Unit,
                 callback: (ExtractorLink) -> Unit
         ) {
-            val document = app.get(url, referer = referer).document
-            val dataFrame = document.selectFirst("#dropdown-server li a")?.attr("data-frame") ?: ""
 
-            val url =  base64Decode(dataFrame)
-            val ref = base64Encode("https://139.99.115.223/".toByteArray())
 
-            val response = app.get("$url&r=$ref", referer = referer)
+            val response = app.get(url, referer = referer)
 
             val m3u8 = Regex("[\"'](.*?master\\.m3u8.*?)[\"']").find(response.text)?.groupValues?.getOrNull(1)
             M3u8Helper.generateM3u8(
@@ -152,5 +170,11 @@ class PusatfilmProvider : MainAPI() {
                     mainUrl
             ).forEach(callback)
         }
+    }
+
+    open class GdriveplayerTo : Gdriveplayer() {
+        override val name = "GDrivePlayerTo"
+        override val mainUrl = "https://gdriveplayer.to"
+        override val requiresReferer = true
     }
 }
