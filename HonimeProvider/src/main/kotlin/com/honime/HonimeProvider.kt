@@ -23,6 +23,7 @@ import com.lagradost.cloudstream3.toRatingInt
 import com.lagradost.cloudstream3.utils.AppUtils.parseJson
 import com.lagradost.cloudstream3.utils.AppUtils.toJson
 import com.lagradost.cloudstream3.utils.ExtractorLink
+import com.lagradost.cloudstream3.utils.loadExtractor
 import org.jsoup.nodes.Element
 
 class HonimeProvider : MainAPI() {
@@ -100,7 +101,11 @@ class HonimeProvider : MainAPI() {
                 val epName = it.select(".epl-title").text().trim()
                 val epNumber = it.select(".epl-num").text().trim().toIntOrNull() ?: 0
                 val epUrl = it.select("a").attr("href");
-                episodeList.add(Episode(epUrl, epName, episode = epNumber))
+
+                val epDoc = app.get(epUrl).document
+                val thumb = epDoc.select(".episodelist .selected img").attr("src").replace("?resize=130,130", "")
+
+                episodeList.add(Episode(epUrl, "Episode $epNumber", episode = epNumber, description = epName, posterUrl = thumb))
             }
 
             return newTvSeriesLoadResponse(title, url, type, episodeList.toList()) {
@@ -143,11 +148,11 @@ class HonimeProvider : MainAPI() {
 
 
                     callback.invoke(
-                            ExtractorLink(sourceUrl, sourceTitle, sourceUrl, referer = sourceUrl, quality = 0)
+                            ExtractorLink(sourceUrl, sourceTitle, sourceUrl, referer = sourceUrl, quality = 0, isM3u8 = sourceUrl.contains("m3u8"))
                     )
 
 
-                } else {
+                } else if(embedUrl.contains("blogger.com")) {
                     // Google Video
                     val iframeText = app.get(embedUrl).text
 
@@ -157,6 +162,8 @@ class HonimeProvider : MainAPI() {
                     callback.invoke(
                             ExtractorLink(source, "Google Video", source, referer = source, quality = 480)
                     )
+                } else {
+                    loadExtractor(embedUrl, subtitleCallback, callback)
                 }
             }
         }
