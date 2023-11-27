@@ -1,11 +1,11 @@
 // use an integer for version numbers
-version = 3
+version = 1
 
 
 cloudstream {
     // All of these properties are optional, you can safely remove them
 
-    description = "ditonton.bid plugin repository"
+    description = "Pusatfilm plugin repository"
     authors = listOf("qolbudr")
 
     /**
