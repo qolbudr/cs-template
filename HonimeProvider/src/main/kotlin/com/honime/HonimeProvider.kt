@@ -15,6 +15,7 @@ import com.lagradost.cloudstream3.base64Decode
 import com.lagradost.cloudstream3.mainPageOf
 import com.lagradost.cloudstream3.newAnimeLoadResponse
 import com.lagradost.cloudstream3.newHomePageResponse
+import com.lagradost.cloudstream3.newMovieLoadResponse
 import com.lagradost.cloudstream3.newMovieSearchResponse
 import com.lagradost.cloudstream3.newTvSeriesLoadResponse
 import com.lagradost.cloudstream3.newTvSeriesSearchResponse
@@ -77,7 +78,7 @@ class HonimeProvider : MainAPI() {
         val typeRaw = document.select(".spe span:nth-child(5)").text().trim()
 
         val type = if(typeRaw.contains("Movie")) {
-            TvType.AnimeMovie
+            TvType.Movie
         } else {
             TvType.Anime
         }
@@ -85,7 +86,7 @@ class HonimeProvider : MainAPI() {
         if(type == TvType.AnimeMovie) {
             val newURL = document.selectFirst(".eplister li a")?.attr("href") ?: "";
 
-            return newAnimeLoadResponse(title, newURL, type) {
+            return newMovieLoadResponse(title, newURL, type, newURL) {
                 this.posterUrl = poster
                 this.tags = tags
                 this.rating = rating
