@@ -23,13 +23,14 @@ import com.lagradost.cloudstream3.toRatingInt
 import com.lagradost.cloudstream3.utils.AppUtils.parseJson
 import com.lagradost.cloudstream3.utils.AppUtils.toJson
 import com.lagradost.cloudstream3.utils.ExtractorLink
+import com.lagradost.cloudstream3.utils.M3u8Helper
 import com.lagradost.cloudstream3.utils.loadExtractor
 import org.jsoup.nodes.Element
 
 class HonimeProvider : MainAPI() {
     override var mainUrl = "https://honime.com"
     override var name = "Honime"
-    override val supportedTypes = setOf(TvType.Anime, TvType.TvSeries, TvType.Movie)
+    override val supportedTypes = setOf(TvType.Anime)
     override var lang = "id"
     override val hasMainPage = true
 
@@ -79,12 +80,12 @@ class HonimeProvider : MainAPI() {
         val typeRaw = document.select(".spe span:nth-child(5)").text().trim()
 
         val type = if(typeRaw.contains("Movie")) {
-            TvType.Movie
+            TvType.AnimeMovie
         } else {
-            TvType.TvSeries
+            TvType.Anime
         }
 
-        if(type == TvType.Movie) {
+        if(type == TvType.AnimeMovie) {
             val newURL = document.selectFirst(".eplister li a")?.attr("href") ?: "";
 
             return newMovieLoadResponse(title, url, type, newURL) {
@@ -105,7 +106,9 @@ class HonimeProvider : MainAPI() {
                 val epDoc = app.get(epUrl).document
                 val thumb = epDoc.select(".episodelist .selected img").attr("src").replace("?resize=130,130", "")
 
-                episodeList.add(Episode(epUrl, "Episode $epNumber", episode = epNumber, description = epName, posterUrl = thumb))
+                val episodeItem = Episode(epUrl, "Episode $epNumber", 0, epNumber, thumb, description = epName)
+
+                episodeList.add(episodeItem)
             }
 
             return newTvSeriesLoadResponse(title, url, type, episodeList.toList()) {
@@ -146,10 +149,17 @@ class HonimeProvider : MainAPI() {
 
                     val sourceUrl = json.source?.firstOrNull()?.file ?: ""
 
-
-                    callback.invoke(
-                            ExtractorLink(sourceUrl, sourceTitle, sourceUrl, referer = sourceUrl, quality = 0, isM3u8 = sourceUrl.contains("m3u8"))
-                    )
+                    if(sourceUrl.contains("m3u8")) {
+                        M3u8Helper.generateM3u8(
+                                sourceTitle,
+                                sourceUrl,
+                                mainUrl
+                        ).forEach(callback)
+                    } else {
+                        callback.invoke(
+                                ExtractorLink(sourceUrl, sourceTitle, sourceUrl, referer = sourceUrl, quality = 0)
+                        )
+                    }
 
 
                 } else if(embedUrl.contains("blogger.com")) {
