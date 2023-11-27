@@ -5,6 +5,7 @@ import com.lagradost.cloudstream3.extractors.Gdriveplayer
 import com.lagradost.cloudstream3.utils.ExtractorApi
 import com.lagradost.cloudstream3.utils.ExtractorLink
 import com.lagradost.cloudstream3.utils.M3u8Helper
+import com.lagradost.cloudstream3.utils.httpsify
 import com.lagradost.cloudstream3.utils.loadExtractor
 import org.jsoup.nodes.Element
 
@@ -123,28 +124,16 @@ class PusatfilmProvider : MainAPI() {
     override suspend fun loadLinks(data: String, isCasting: Boolean, subtitleCallback: (SubtitleFile) -> Unit, callback: (ExtractorLink) -> Unit): Boolean {
         val document = app.get(data).document
         val iframe = document.selectFirst(".gmr-embed-responsive iframe")?.attr("src") ?: ""
-
         val documentFrame = app.get(iframe, referer = mainUrl).document
-
-        var urlstream = ArrayList<String>()
 
         documentFrame.select("#dropdown-server li a").mapNotNull {
             val url =  base64Decode(it.attr("data-frame"))
             val ref = base64Encode("https://139.99.115.223/".toByteArray())
 
-            var urlFinal = "$url&r=$ref";
+            "$url&r=$ref";
 
-            urlFinal = if(urlFinal.contains("gdriveplayer")) {
-                "https:$urlFinal";
-            } else {
-                urlFinal
-            }
-
-            urlstream.add(urlFinal)
-        }
-
-        urlstream.toList().mapNotNull {
-            loadExtractor(it, data, subtitleCallback, callback)
+        }.apmap {
+            loadExtractor(httpsify(it), data, subtitleCallback, callback)
         }
 
         return true;
