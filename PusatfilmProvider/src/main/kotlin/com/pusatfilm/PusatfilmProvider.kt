@@ -126,7 +126,7 @@ class PusatfilmProvider : MainAPI() {
         val iframe = document.selectFirst(".gmr-embed-responsive iframe")?.attr("src") ?: ""
         val documentFrame = app.get(iframe, referer = mainUrl).document
 
-        documentFrame.select("#dropdown-server li a").mapNotNull {
+        documentFrame.select("#dropdown-server li a").reversed().mapNotNull {
             val url =  base64Decode(it.attr("data-frame"))
             val ref = base64Encode("https://139.99.115.223/".toByteArray())
 
