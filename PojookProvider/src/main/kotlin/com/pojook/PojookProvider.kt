@@ -182,7 +182,7 @@ class PojookProvider : MainAPI() {
             document.select(".se-c").mapNotNull {
                 var episodeNumber = 1;
                 it.select(".episodiotitle a").mapNotNull {epsBtn ->
-                    val href = it.attr("href")
+                    val href = epsBtn.attr("href")
                     val itEps = episodes.firstOrNull {epIt -> epIt.episode == episodeNumber && epIt.season == seasonNumber}
 
                     if(itEps != null) {
