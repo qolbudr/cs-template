@@ -25,6 +25,7 @@ import com.lagradost.cloudstream3.LoadResponse.Companion.addTrailer
 import com.lagradost.cloudstream3.newMovieLoadResponse
 import com.lagradost.cloudstream3.newTvSeriesLoadResponse
 import com.lagradost.cloudstream3.toRatingInt
+import java.time.Year
 import kotlin.math.roundToInt
 
 class PojookProvider : MainAPI() {
@@ -38,7 +39,7 @@ class PojookProvider : MainAPI() {
     val apiTmdb = "cad7722e1ca44bd5f1ea46b59c8d54c8"
 
     data class TmdbSearchResponse(val results: List<TmdbBody>?)
-    data class TmdbBody(val id: String?)
+    data class TmdbBody(val id: String?, val first_air_date: String?)
 
     data class EmbedResponse(val embed_url: String, val type: String)
 
@@ -61,17 +62,17 @@ class PojookProvider : MainAPI() {
         }
     }
 
-    private suspend fun getTmdbId(tvShow: Boolean, query: String): String? {
+    private suspend fun getTmdbId(tvShow: Boolean, query: String, year: String): String? {
         return if (tvShow) {
             val result = app.get("$tmdbURL/search/tv?query=$query&api_key=$apiTmdb").text
             val data = parseJson<TmdbSearchResponse>(result)
 
-            data.results?.firstOrNull()?.id;
+            data.results?.firstOrNull {it.first_air_date?.contains(year) ?: false}?.id;
         } else {
             val result = app.get("$tmdbURL/search/movie?query=$query&api_key=$apiTmdb").text
             val data = parseJson<TmdbSearchResponse>(result)
 
-            data.results?.firstOrNull()?.id;
+            data.results?.firstOrNull {it.first_air_date?.contains(year) ?: false}?.id;
         }
     }
 
@@ -90,8 +91,9 @@ class PojookProvider : MainAPI() {
             val title = it.selectFirst(".data a")?.text()?.trim() ?: ""
             val href = it.selectFirst(".data a")?.attr("href") ?: ""
             val queryTitle = Regex("(?<=)(.*)(?= \\()").find(title)?.groupValues?.getOrNull(1) ?: ""
+            val year = Regex("(?<=\\()(.*)(?=\\))").find(title)?.groupValues?.getOrNull(1) ?: ""
 
-            val tmdbId = getTmdbId(tvShow = href.contains("tvshows"), query = queryTitle)
+            val tmdbId = getTmdbId(tvShow = href.contains("tvshows"), query = queryTitle, year = year)
 
             if (tmdbId != null) {
                 home.add(it.toSearchResult())
@@ -112,8 +114,9 @@ class PojookProvider : MainAPI() {
             val quality = "Bluray"
 
             val queryTitle = Regex("(?<=)(.*)(?= \\()").find(title)?.groupValues?.getOrNull(1) ?: ""
+            val year = Regex("(?<=\\()(.*)(?=\\))").find(title)?.groupValues?.getOrNull(1) ?: ""
 
-            val tmdbId = getTmdbId(tvShow = href.contains("tvshows"), query = queryTitle)
+            val tmdbId = getTmdbId(tvShow = href.contains("tvshows"), query = queryTitle, year = year)
 
             if (tmdbId != null) {
                 if (href.contains("tvshows")) {
@@ -137,7 +140,9 @@ class PojookProvider : MainAPI() {
         val document = app.get(url).document
         val title = document.selectFirst(".sheader .data h1")?.text()?.trim() ?: ""
         val queryTitle = Regex("(?<=)(.*)(?= \\()").find(title)?.groupValues?.getOrNull(1) ?: ""
-        val tmdbId = getTmdbId(tvShow = url.contains("tvshows"), query = queryTitle);
+        val yearS = Regex("(?<=\\()(.*)(?=\\))").find(title)?.groupValues?.getOrNull(1) ?: ""
+
+        val tmdbId = getTmdbId(tvShow = url.contains("tvshows"), query = queryTitle, year = yearS)
 
         val append = "alternative_titles,credits,external_ids,keywords,videos,recommendations"
 
@@ -229,7 +234,13 @@ class PojookProvider : MainAPI() {
                 val movieId = it.attr("data-post")
                 val idPlayer = it.attr("data-nume")
 
-                val embedRes = app.get("$mainUrl/wp-json/dooplayer/v2/$movieId/movie/$idPlayer").text
+                val urlPath = if(data.contains("episode")) {
+                    "$mainUrl/wp-json/dooplayer/v2/$movieId/tv/$idPlayer"
+                } else {
+                    "$mainUrl/wp-json/dooplayer/v2/$movieId/movie/$idPlayer"
+                }
+
+                val embedRes = app.get(urlPath).text
                 val embedData = parseJson<EmbedResponse>(embedRes)
 
                 if(embedData.embed_url.contains("fa.efek.stream")) {
