@@ -39,7 +39,7 @@ class PojookProvider : MainAPI() {
     val apiTmdb = "cad7722e1ca44bd5f1ea46b59c8d54c8"
 
     data class TmdbSearchResponse(val results: List<TmdbBody>?)
-    data class TmdbBody(val id: String?, val first_air_date: String?)
+    data class TmdbBody(val id: String?, val first_air_date: String?, val release_date: String?)
 
     data class EmbedResponse(val embed_url: String, val type: String)
 
@@ -72,7 +72,7 @@ class PojookProvider : MainAPI() {
             val result = app.get("$tmdbURL/search/movie?query=$query&api_key=$apiTmdb").text
             val data = parseJson<TmdbSearchResponse>(result)
 
-            data.results?.firstOrNull {it.first_air_date?.contains(year) ?: false}?.id;
+            data.results?.firstOrNull {it.release_date?.contains(year) ?: false}?.id;
         }
     }
 
@@ -183,11 +183,14 @@ class PojookProvider : MainAPI() {
                 var episodeNumber = 1;
                 it.select(".episodiotitle a").mapNotNull {epsBtn ->
                     val href = it.attr("href")
-                    val itEps = episodes.first {epIt -> epIt.episode == episodeNumber && epIt.season == seasonNumber}
-                    val parsedItEps = itEps.copy(data = "$mainUrl$href")
+                    val itEps = episodes.firstOrNull {epIt -> epIt.episode == episodeNumber && epIt.season == seasonNumber}
 
-                    parsedEpisode.add(parsedItEps)
-                    episodeNumber++;
+                    if(itEps != null) {
+                        val parsedItEps = itEps.copy(data = "$mainUrl$href")
+
+                        parsedEpisode.add(parsedItEps)
+                        episodeNumber++;
+                    }
                 }
 
                 seasonNumber++;
@@ -227,17 +230,16 @@ class PojookProvider : MainAPI() {
 
     override suspend fun loadLinks(data: String, isCasting: Boolean, subtitleCallback: (SubtitleFile) -> Unit, callback: (ExtractorLink) -> Unit): Boolean {
         val document = app.get(data, referer = mainUrl).document
-        val movieId = document.selectFirst("[data-nume]")?.attr("data-post")
 
         document.select("[data-nume]").mapNotNull {
             if (it.attr("data-nume") != "trailer") {
                 val movieId = it.attr("data-post")
                 val idPlayer = it.attr("data-nume")
 
-                val urlPath = if(data.contains("episode")) {
-                    "$mainUrl/wp-json/dooplayer/v2/$movieId/tv/$idPlayer"
+                val urlPath = if(data.contains("episodes")) {
+                     "$mainUrl/wp-json/dooplayer/v2/$movieId/tv/$idPlayer"
                 } else {
-                    "$mainUrl/wp-json/dooplayer/v2/$movieId/movie/$idPlayer"
+                     "$mainUrl/wp-json/dooplayer/v2/$movieId/movie/$idPlayer"
                 }
 
                 val embedRes = app.get(urlPath).text
