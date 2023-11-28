@@ -66,7 +66,7 @@ class PojookProvider : MainAPI() {
 
             data.results?.firstOrNull()?.id;
         } else {
-            val result = app.get("$tmdbURL/movie/tv?query=$query&api_key=$apiTmdb").text
+            val result = app.get("$tmdbURL/search/movie?query=$query&api_key=$apiTmdb").text
             val data = parseJson<TmdbSearchResponse>(result)
 
             data.results?.firstOrNull()?.id;
@@ -136,29 +136,29 @@ class PojookProvider : MainAPI() {
         val dataFromTmdb = TmdbProvider().load(tmdbHref);
 
         if(url.contains("tvshows")) {
-            val dataParsed = dataFromTmdb as TvSeriesLoadResponse
+            val dataParsed = dataFromTmdb as? TvSeriesLoadResponse
             var episodeParsed = ArrayList<Episode>()
-            val episode = dataParsed.episodes
+            val episode = dataParsed?.episodes
             var seasonNumber = 1;
 
             document.select(".se-c").mapNotNull {
                 var episodeNumber = 1;
-                val episodeToEdit = episode.filter { episodeIt -> episodeIt.season == seasonNumber }
+                val episodeToEdit = episode?.filter { episodeIt -> episodeIt.season == seasonNumber }
 
                 it.select(".episodiotitle a").mapNotNull {episodeBox ->
                     val realHrefEpisode = "$mainUrl${episodeBox.attr("href")}"
-                    val resEpisode = episodeToEdit.first { epItem -> epItem.episode == episodeNumber }.copy(data = realHrefEpisode)
-                    episodeParsed.add(resEpisode)
+                    val resEpisode = episodeToEdit?.first { epItem -> epItem.episode == episodeNumber }?.copy(data = realHrefEpisode)
+                    if(resEpisode != null) episodeParsed.add(resEpisode)
                     episodeNumber++;
                 }
 
                 seasonNumber++;
             }
 
-            return dataParsed.copy(episodes = episodeParsed.toList(), url = url)
+            return dataParsed?.copy(episodes = episodeParsed.toList(), url = url)
         } else {
-            val dataParsed = dataFromTmdb as MovieLoadResponse
-            return dataParsed.copy(url = url, dataUrl = url)
+            val dataParsed = dataFromTmdb as? MovieLoadResponse
+            return dataParsed?.copy(url = url, dataUrl = url)
         }
     }
 
