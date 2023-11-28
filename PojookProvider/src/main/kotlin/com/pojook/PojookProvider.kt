@@ -182,6 +182,7 @@ class PojookProvider : MainAPI() {
                     val parsedItEps = itEps.copy(data = "$mainUrl$href")
 
                     parsedEpisode.add(parsedItEps)
+                    episodeNumber++;
                 }
 
                 seasonNumber++;
@@ -223,16 +224,23 @@ class PojookProvider : MainAPI() {
         val document = app.get(data, referer = mainUrl).document
         val movieId = document.selectFirst("[data-nume]")?.attr("data-post")
 
-        val embedRes = app.get("$mainUrl/wp-json/dooplayer/v2/$movieId/movie/3").text
-        val embedData = parseJson<EmbedResponse>(embedRes)
+        document.select("[data-nume]").mapNotNull {
+            if (it.attr("data-nume") != "trailer") {
+                val movieId = it.attr("data-post")
+                val idPlayer = it.attr("data-nume")
 
-        val playerId = Regex("(?<=v\\/)(.*)(?=&)").find(embedData.embed_url)?.groupValues?.getOrNull(1)
+                val embedRes = app.get("$mainUrl/wp-json/dooplayer/v2/$movieId/movie/$idPlayer").text
+                val embedData = parseJson<EmbedResponse>(embedRes)
 
-        val qualities = listOf<Int>(360, 720, 1080)
-
-        for (quality in qualities) {
-            val streamUrl = "https://d308.gshare.art/stream/$quality/$playerId/__001"
-            callback.invoke(ExtractorLink("VIP Server", "VIP Server HD", streamUrl, "https://fa.efek.stream", quality, type = ExtractorLinkType.VIDEO))
+                if(embedData.embed_url.contains("fa.efek.stream")) {
+                    val playerId = Regex("(?<=v\\/)(.*)(?=&)").find(embedData.embed_url)?.groupValues?.getOrNull(1)
+                    val qualities = listOf<Int>(360, 720, 1080)
+                    for (quality in qualities) {
+                        val streamUrl = "https://d308.gshare.art/stream/$quality/$playerId/__001"
+                        callback.invoke(ExtractorLink("VIP Server", "VIP Server HD", streamUrl, "https://fa.efek.stream", quality, type = ExtractorLinkType.VIDEO))
+                    }
+                }
+            }
         }
 
         return true;
