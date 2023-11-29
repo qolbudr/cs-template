@@ -263,7 +263,11 @@ class PojookProvider : MainAPI() {
                     val qualities = listOf<Int>(360, 720, 1080)
                     for (quality in qualities) {
                         val streamUrl = "https://fa.efek.stream/stream/$quality/$playerId/__001"
-                        callback.invoke(ExtractorLink("VIP Server", "VIP Server HD", streamUrl, "https://fa.efek.stream", quality, type = ExtractorLinkType.VIDEO))
+
+                        val link = app.get(streamUrl, referer = "https://fa.efek.stream").headers["Location"]
+                        if(link != null) {
+                            callback.invoke(ExtractorLink("VIP Server", "VIP Server HD", link, "https://fa.efek.stream", quality, type = ExtractorLinkType.VIDEO))
+                        }
                     }
                 }
             }
