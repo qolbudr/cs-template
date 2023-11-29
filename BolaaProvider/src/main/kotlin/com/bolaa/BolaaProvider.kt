@@ -31,23 +31,38 @@ class BolaaProvider : MainAPI() {
     )
 
     override suspend fun getMainPage(page: Int, request: MainPageRequest): HomePageResponse? {
-        val document = app.get(request.data).document
         val type = request.name
 
-        val selector = if(type == "Live Sekarang") {
-           "#live"
-        } else if(type == "Hari Ini") {
-            "#today"
-        } else {
-           "#besok"
+        val document = when (type) {
+            "Live Sekarang" -> {
+                app.post("$mainUrl/ajaxLive/").document
+            }
+            "Hari Ini" -> {
+                app.post("$mainUrl/ajaxToday/").document
+            }
+            else -> {
+                app.post("$mainUrl/ajaxBesok/").document
+            }
         }
 
-        val result = document.select("$selector div.match-list").mapNotNull {
+        val selector = when (type) {
+            "Live Sekarang" -> {
+                "#live"
+            }
+            "Hari Ini" -> {
+                "#today"
+            }
+            else -> {
+                "#besok"
+            }
+        }
+
+        val result = document.select("div.match-list").mapNotNull {
             val title = it.select(".team-name").mapNotNull { team -> team.text().trim() }.joinToString(" vs ")
             val image = it.select(".w-5 img").attr("src")
             val url = it.select("a").attr("href")
 
-            val parsedUrl = "$url|$selector"
+            val parsedUrl = "$mainUrl$url|$selector"
 
             newMovieSearchResponse(title, parsedUrl, TvType.Live) {
                 this.posterUrl = image
