@@ -262,7 +262,7 @@ class PojookProvider : MainAPI() {
                     val playerId = Regex("(?<=v\\/)(.*)(?=&)").find(embedData.embed_url)?.groupValues?.getOrNull(1)
                     val qualities = listOf<Int>(360, 720, 1080)
                     for (quality in qualities) {
-                        val streamUrl = "https://d308.gshare.art/stream/$quality/$playerId/__001"
+                        val streamUrl = "https://fa.efek.stream/stream/$quality/$playerId/__001"
                         callback.invoke(ExtractorLink("VIP Server", "VIP Server HD", streamUrl, "https://fa.efek.stream", quality, type = ExtractorLinkType.VIDEO))
                     }
                 }
