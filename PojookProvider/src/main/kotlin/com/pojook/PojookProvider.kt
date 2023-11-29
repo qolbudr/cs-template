@@ -189,8 +189,13 @@ class PojookProvider : MainAPI() {
                         val parsedItEps = itEps.copy(data = "$mainUrl$href")
 
                         parsedEpisode.add(parsedItEps)
-                        episodeNumber++;
+                    } else {
+                        val parsedItEps = Episode(data = "$mainUrl$href", name = "Episode $episodeNumber", season = seasonNumber, posterUrl = poster, description = "Nonton $resTitle Season $seasonNumber Episode $episodeNumber")
+
+                        parsedEpisode.add(parsedItEps)
                     }
+
+                    episodeNumber++;
                 }
 
                 seasonNumber++;
