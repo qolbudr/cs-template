@@ -264,7 +264,7 @@ class PojookProvider : MainAPI() {
                     for (quality in qualities) {
                         val streamUrl = "https://fa.efek.stream/stream/$quality/$playerId/__001"
 
-                        val resLink = app.get(streamUrl, referer = "https://fa.efek.stream")
+                        val resLink = app.get(streamUrl, referer = "https://fa.efek.stream", allowRedirects = false)
                         val actualLink = resLink.headers["location"] ?: resLink.headers["Location"]
 
                         if(actualLink != null) {
