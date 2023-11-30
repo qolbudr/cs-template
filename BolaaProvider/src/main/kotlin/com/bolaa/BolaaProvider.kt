@@ -7,18 +7,15 @@ import com.lagradost.cloudstream3.SubtitleFile
 import com.lagradost.cloudstream3.TvType
 import com.lagradost.cloudstream3.addPoster
 import com.lagradost.cloudstream3.app
-import com.lagradost.cloudstream3.base64Decode
 import com.lagradost.cloudstream3.mainPageOf
 import com.lagradost.cloudstream3.newHomePageResponse
 import com.lagradost.cloudstream3.newMovieLoadResponse
 import com.lagradost.cloudstream3.newMovieSearchResponse
 import com.lagradost.cloudstream3.utils.ExtractorLink
-import com.lagradost.cloudstream3.utils.ExtractorLinkType
-import com.lagradost.cloudstream3.utils.M3u8Helper
 import com.lagradost.cloudstream3.utils.Qualities
 
 class BolaaProvider : MainAPI() {
-    override var mainUrl = "https://bangdoyok.art"
+    override var mainUrl = "https://nobarbolagratis.live"
     override var name = "Bolaa"
     override val supportedTypes = setOf(TvType.Live)
     override var lang = "id"
@@ -60,12 +57,15 @@ class BolaaProvider : MainAPI() {
         val result = document.select("div.match-list").mapNotNull {
             val title = it.select(".team-name").mapNotNull { team -> team.text().trim() }.joinToString(" vs ")
             val image = it.select(".w-5 img").attr("src")
+            val code = Regex("(?<=team\\/)(.*)(?=.png)").find(image)?.groupValues?.get(1) ?: ""
+
+            val realImg = "https://bolaa-img.vercel.app/?code=$code"
             val url = it.select("a").attr("href")
 
             val parsedUrl = "$mainUrl$url|$selector"
 
             newMovieSearchResponse(title, parsedUrl, TvType.Live) {
-                this.posterUrl = image
+                this.posterUrl = realImg
             }
         }
 

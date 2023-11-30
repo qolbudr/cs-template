@@ -1,5 +1,5 @@
 // use an integer for version numbers
-version = 2
+version = 3
 
 cloudstream {
     // All of these properties are optional, you can safely remove them
@@ -23,5 +23,5 @@ cloudstream {
             "Live",
     )
 
-    iconUrl = "https://bangdoyok.art/uploads/Untitled-1.png"
+    iconUrl = "https://nobarbolagratis.live/uploads/Untitled-1.png"
 }
