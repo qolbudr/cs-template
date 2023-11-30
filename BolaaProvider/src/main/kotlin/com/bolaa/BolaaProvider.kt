@@ -99,8 +99,8 @@ class BolaaProvider : MainAPI() {
             if(resUrl != null) {
                 callback.invoke(
                         ExtractorLink(
-                                "Bolaa Server",
-                                "Bolaa Server",
+                                "Bolaa Server - Server $serverNumber",
+                                "Bolaa Server - Server $serverNumber",
                                 resUrl,
                                 referer = mainUrl,
                                 quality = Qualities.Unknown.value,
@@ -109,6 +109,8 @@ class BolaaProvider : MainAPI() {
 
                 )
             }
+
+            serverNumber++;
         }
 
         return true
