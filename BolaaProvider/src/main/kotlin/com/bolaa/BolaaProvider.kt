@@ -55,13 +55,22 @@ class BolaaProvider : MainAPI() {
         }
 
         val result = document.select("div.match-list").mapNotNull {
-            val title = it.select(".team-name").mapNotNull { team -> team.text().trim() }.joinToString(" vs ")
-            val image = it.select(".w-5 img").attr("src")
-            val code = Regex("(?<=team\\/)(.*)(?=.png)").find(image)?.groupValues?.get(1) ?: ""
+            val team = it.select(".team-name").mapNotNull { team -> team.text().trim() }
+            val title = team.joinToString(" Vs ")
+            val time = if(selector.contains("live")) {
+                "live"
+            } else {
+                val textTime = it.select("a").text()
+                Regex("(?<=[0-9][0-9][0-9][0-9] )(.*)(?= WIB)").find(textTime)?.groupValues?.get(1) ?: "-"
+            }
+            val tournament = it.select(".liga-name").text().trim()
 
-            val realImg = "https://bolaa-img.vercel.app/?code=$code"
+            val img = it.select(".w-5 img").mapNotNull  {imageTeam -> imageTeam.attr("src") }
+            val codeImg = img.mapNotNull { codee -> Regex("(?<=team\\/)(.*)(?=.png)").find(codee)?.groupValues?.get(1) ?: "" }
+
+            val realImg = "https://bolaa-img.vercel.app/?home=${codeImg[0]}&away=${codeImg[1]}&time=$time&nameHome=${team[0] ?: "-"}&nameAway=${team[1] ?: "-"}&tournament=$tournament"
+
             val url = it.select("a").attr("href")
-
             val parsedUrl = "$mainUrl$url|$selector"
 
             newMovieSearchResponse(title, parsedUrl, TvType.Live) {
