@@ -1,7 +1,7 @@
+import com.fasterxml.jackson.annotation.JsonProperty
 import com.lagradost.cloudstream3.Episode
 import com.lagradost.cloudstream3.HomePageResponse
 import com.lagradost.cloudstream3.LoadResponse
-import com.lagradost.cloudstream3.LoadResponse.Companion.addTrailer
 import com.lagradost.cloudstream3.MainAPI
 import com.lagradost.cloudstream3.MainPageData
 import com.lagradost.cloudstream3.MainPageRequest
@@ -12,18 +12,20 @@ import com.lagradost.cloudstream3.addQuality
 import com.lagradost.cloudstream3.app
 import com.lagradost.cloudstream3.base64Decode
 import com.lagradost.cloudstream3.mainPageOf
-import com.lagradost.cloudstream3.newAnimeLoadResponse
 import com.lagradost.cloudstream3.newAnimeSearchResponse
 import com.lagradost.cloudstream3.newHomePageResponse
 import com.lagradost.cloudstream3.newTvSeriesLoadResponse
 import com.lagradost.cloudstream3.toRatingInt
+import com.lagradost.cloudstream3.utils.AppUtils.tryParseJson
 import com.lagradost.cloudstream3.utils.ExtractorApi
 import com.lagradost.cloudstream3.utils.ExtractorLink
-import com.lagradost.cloudstream3.utils.M3u8Helper
 import com.lagradost.cloudstream3.utils.Qualities
+import com.lagradost.cloudstream3.utils.fixUrl
+import com.lagradost.cloudstream3.utils.getAndUnpack
+import com.lagradost.cloudstream3.utils.getQualityFromName
 import com.lagradost.cloudstream3.utils.loadExtractor
 import java.text.SimpleDateFormat
-import java.util.Calendar
+import java.util.Date
 
 class HqnimeProvider : MainAPI() {
     override var mainUrl = "https://hqnime.com"
@@ -59,9 +61,9 @@ class HqnimeProvider : MainAPI() {
             }
         } else {
             if(request.name == "Today") {
-                val time = Calendar.getInstance().time
                 val formatter = SimpleDateFormat("EEEE")
-                val day = formatter.format(time).lowercase()
+                val date = Date()
+                val day = formatter.format(date)
 
                 document.select(".sch_$day .listupd .bs").mapNotNull {
                     val title = it.selectFirst(".tt")?.text()?.trim() ?: ""
@@ -108,7 +110,7 @@ class HqnimeProvider : MainAPI() {
         val result = ArrayList<SearchResponse>()
 
         document.select("article.bs").mapNotNull {
-            val title = it.selectFirst(".tt")?.text()?.trim() ?: ""
+            val title = it.selectFirst(".tt h2")?.text()?.trim() ?: ""
             val href = it.selectFirst("a")?.attr("href") ?: ""
             val quality = Qualities.Unknown.name
             val typez = it.selectFirst(".typez")?.text()?.trim() ?: ""
@@ -197,13 +199,29 @@ open class PPlayer : ExtractorApi() {
     override val requiresReferer = true
 
     override suspend fun getUrl(url: String, referer: String?, subtitleCallback: (SubtitleFile) -> Unit, callback: (ExtractorLink) -> Unit) {
-        val result = app.get(url, referer = referer).text
-        val resUrl = Regex("(?<=file\":\")(.*)(?=\",\"t)").find(result)?.groupValues?.get(1)
-        val url = resUrl?.replace("\\/", "/") ?: ""
-        callback.invoke(
-                ExtractorLink("P1Player", "P1Player", url, mainUrl, Qualities.Unknown.value, isM3u8 = url.contains("m3u8"))
-        )
+        val res = app.get(url, referer = referer).text
+        val data = getAndUnpack(res)
+
+        val sources = data.substringAfter("sources: [").substringBefore("]").replace("\'", "\"")
+
+        tryParseJson<List<Responses>>("[$sources]")?.forEach {
+            callback.invoke(
+                    ExtractorLink(
+                            this.name,
+                            this.name,
+                            fixUrl(it.file),
+                            "$mainUrl/",
+                            getQualityFromName(it.label)
+                    )
+            )
+        }
     }
+
+    data class Responses(
+            @JsonProperty("file") val file: String,
+            @JsonProperty("type") val type: String?,
+            @JsonProperty("label") val label: String?
+    )
 }
 
 open class Blogger : ExtractorApi() {
