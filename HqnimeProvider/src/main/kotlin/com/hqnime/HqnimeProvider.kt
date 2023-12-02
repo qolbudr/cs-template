@@ -79,7 +79,7 @@ class HqnimeProvider : MainAPI() {
                 }
             } else {
                 document.select("article.bs").mapNotNull {
-                    val title = it.selectFirst(".tt")?.text()?.trim() ?: ""
+                    val title = it.selectFirst(".tt h2")?.text()?.trim() ?: ""
                     val href = it.selectFirst("a")?.attr("href") ?: ""
                     val quality = Qualities.Unknown.name
                     val typez = it.selectFirst(".typez")?.text()?.trim() ?: ""
@@ -135,7 +135,7 @@ class HqnimeProvider : MainAPI() {
         val resTitle = document.selectFirst(".entry-title")?.text()?.trim() ?: ""
         val title = resTitle.replace("Subtitle Indonesia", "")
         val poster = document.selectFirst(".ts-post-image")?.attr("src") ?: ""
-        val year = document.selectFirst(".split")?.text()?.trim()
+        val year = document.selectFirst(".split")?.text()?.trim()?.split(" ")?.get(1)
         val overview = document.selectFirst(".entry-content p")?.text()?.trim()
         val tags = document.select(".genxed a").mapNotNull { it.text() }
         val rating = document.selectFirst(".rating strong")?.text()?.trim()
@@ -148,22 +148,25 @@ class HqnimeProvider : MainAPI() {
         }
 
         val episode = ArrayList<Episode>()
+        val countEps = document.select(".eplister li").count()
+        var epsNum = countEps
         document.select(".eplister li").mapNotNull {
             val epsUrl = it.selectFirst("a")?.attr("href") ?: ""
             val epsName = it.selectFirst(".epl-title")?.text()?.trim() ?: ""
             val epsNumber = it.selectFirst(".epl-num")?.text()?.trim() ?: "0"
             val epsDescription = "Nonton dan streaming $epsName dengan subtitle indonesia gratis"
 
-            val resEps = Episode(epsUrl, epsName, 1, epsNumber.toInt(), poster, description = epsDescription)
+            val resEps = Episode(epsUrl, epsName, 1, epsNumber.toIntOrNull() ?: epsNum, poster, description = epsDescription)
 
             episode.add(resEps)
+            epsNum--;
         }
 
         val resEpisode = episode.toList().sortedBy { eps -> eps.episode }
 
         return newTvSeriesLoadResponse(title, url, type, resEpisode) {
             this.posterUrl = poster
-            this.year = year?.toInt()
+            this.year = year?.toIntOrNull()
             this.plot = overview
             this.tags = tags
             this.rating = rating.toRatingInt()
