@@ -24,6 +24,7 @@ import com.lagradost.cloudstream3.utils.fixUrl
 import com.lagradost.cloudstream3.utils.getAndUnpack
 import com.lagradost.cloudstream3.utils.getQualityFromName
 import com.lagradost.cloudstream3.utils.loadExtractor
+import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 
@@ -37,14 +38,13 @@ class HqnimeProvider : MainAPI() {
     override val mainPage: List<MainPageData> = mainPageOf(
             "$mainUrl/anime-completed/" to "Complete",
             "$mainUrl" to "Popular",
-            "$mainUrl/jadwal/" to "Today",
     )
 
     override suspend fun getMainPage(page: Int, request: MainPageRequest): HomePageResponse? {
         val document = app.get(request.data).document
         val result = ArrayList<SearchResponse>()
 
-        if(request.name == "Popular") {
+        if (request.name == "Popular") {
             document.select(".wpop-weekly li").mapNotNull {
                 val title = it.selectFirst("h4 a")?.text()?.trim() ?: ""
                 val href = it.selectFirst("h4 a")?.attr("href") ?: ""
@@ -60,7 +60,7 @@ class HqnimeProvider : MainAPI() {
                 result.add(found)
             }
         } else {
-            if(request.name == "Today") {
+            if (request.name == "Today") {
                 val formatter = SimpleDateFormat("EEEE")
                 val date = Date()
                 val day = formatter.format(date)
@@ -85,7 +85,7 @@ class HqnimeProvider : MainAPI() {
                     val href = it.selectFirst("a")?.attr("href") ?: ""
                     val quality = Qualities.Unknown.name
                     val typez = it.selectFirst(".typez")?.text()?.trim() ?: ""
-                    val type = if(typez == "Movie") {
+                    val type = if (typez == "Movie") {
                         TvType.AnimeMovie
                     } else {
                         TvType.Anime
@@ -114,7 +114,7 @@ class HqnimeProvider : MainAPI() {
             val href = it.selectFirst("a")?.attr("href") ?: ""
             val quality = Qualities.Unknown.name
             val typez = it.selectFirst(".typez")?.text()?.trim() ?: ""
-            val type = if(typez == "Movie") {
+            val type = if (typez == "Movie") {
                 TvType.AnimeMovie
             } else {
                 TvType.Anime
@@ -143,7 +143,7 @@ class HqnimeProvider : MainAPI() {
         val rating = document.selectFirst(".rating strong")?.text()?.trim()
         val resType = document.selectFirst(".lastend")?.attr("style") ?: ""
 
-        val type = if(resType.contains("none")) {
+        val type = if (resType.contains("none")) {
             TvType.AnimeMovie
         } else {
             TvType.Anime
@@ -158,7 +158,8 @@ class HqnimeProvider : MainAPI() {
             val epsNumber = it.selectFirst(".epl-num")?.text()?.trim() ?: "0"
             val epsDescription = "Nonton dan streaming $epsName dengan subtitle indonesia gratis"
 
-            val resEps = Episode(epsUrl, epsName, 1, epsNumber.toIntOrNull() ?: epsNum, poster, description = epsDescription)
+            val resEps = Episode(epsUrl, epsName, 1, epsNumber.toIntOrNull()
+                    ?: epsNum, poster, description = epsDescription)
 
             episode.add(resEps)
             epsNum--;
@@ -176,14 +177,15 @@ class HqnimeProvider : MainAPI() {
     }
 
     override suspend fun loadLinks(data: String, isCasting: Boolean, subtitleCallback: (SubtitleFile) -> Unit, callback: (ExtractorLink) -> Unit): Boolean {
-        val document  = app.get(data).document
+        val document = app.get(data).document
 
         document.select(".mirror option").mapNotNull {
             val code = it.attr("value")
-            if(code.isNotEmpty()) {
+            if (code.isNotEmpty()) {
                 val codeIframe = base64Decode(code)
-                val urlIframe = Regex("(?<=src=\")(.*)(?=\" frame)").find(codeIframe)?.groupValues?.get(1) ?: ""
-                if(urlIframe.isNotEmpty()) {
+                val urlIframe = Regex("(?<=src=\")(.*)(?=\" frame)").find(codeIframe)?.groupValues?.get(1)
+                        ?: ""
+                if (urlIframe.isNotEmpty()) {
                     loadExtractor(urlIframe, mainUrl, subtitleCallback, callback)
                 }
             }
@@ -202,26 +204,20 @@ open class PPlayer : ExtractorApi() {
         val res = app.get(url, referer = referer).text
         val data = getAndUnpack(res)
 
-        val sources = data.substringAfter("sources: [").substringBefore("]").replace("\'", "\"")
+        var codeApi = data.substringAfter("api/?").substringBefore("\"")
+        val apiURL = "$mainUrl/api/?$codeApi"
+        val resApi = app.get(apiURL).text
 
-        tryParseJson<List<Responses>>("[$sources]")?.forEach {
-            callback.invoke(
-                    ExtractorLink(
-                            this.name,
-                            this.name,
-                            fixUrl(it.file),
-                            "$mainUrl/",
-                            getQualityFromName(it.label)
-                    )
-            )
+        val json = tryParseJson<Response>(resApi)
+
+        json?.sources?.forEach {
+            callback.invoke(ExtractorLink(this.name, this.name, fixUrl(it.file), "$mainUrl/", getQualityFromName(it.label)))
         }
     }
 
-    data class Responses(
-            @JsonProperty("file") val file: String,
-            @JsonProperty("type") val type: String?,
-            @JsonProperty("label") val label: String?
-    )
+    data class Response(@JsonProperty("sources") val sources: List<FileData>)
+
+    data class FileData(@JsonProperty("file") val file: String, @JsonProperty("type") val type: String?, @JsonProperty("label") val label: String?)
 }
 
 open class Blogger : ExtractorApi() {
@@ -232,9 +228,7 @@ open class Blogger : ExtractorApi() {
     override suspend fun getUrl(url: String, referer: String?, subtitleCallback: (SubtitleFile) -> Unit, callback: (ExtractorLink) -> Unit) {
         val result = app.get(url, referer = referer).text
         val url = Regex("(?<=play_url\":\")(.*)(?=\",)").find(result)?.groupValues?.get(1) ?: ""
-        callback.invoke(
-                ExtractorLink("Blogger", "Blogger", url, mainUrl, Qualities.Unknown.value, isM3u8 = url.contains("m3u8"))
-        )
+        callback.invoke(ExtractorLink("Blogger", "Blogger", url, mainUrl, Qualities.Unknown.value, isM3u8 = url.contains("m3u8")))
     }
 }
 
@@ -245,10 +239,9 @@ open class Yourupload : ExtractorApi() {
 
     override suspend fun getUrl(url: String, referer: String?, subtitleCallback: (SubtitleFile) -> Unit, callback: (ExtractorLink) -> Unit) {
         val result = app.get(url, referer = referer).text
-        val url = Regex("(?<=file: ')(.*)(?=',\\n\\  image)").find(result)?.groupValues?.get(1) ?: ""
-        callback.invoke(
-                ExtractorLink("Blogger", "Blogger", url, mainUrl, Qualities.Unknown.value, isM3u8 = url.contains("m3u8"))
-        )
+        val url = Regex("(?<=file: ')(.*)(?=',\\n\\  image)").find(result)?.groupValues?.get(1)
+                ?: ""
+        callback.invoke(ExtractorLink("Blogger", "Blogger", url, mainUrl, Qualities.Unknown.value, isM3u8 = url.contains("m3u8")))
     }
 }
 
@@ -260,8 +253,6 @@ open class Mp4Upload : ExtractorApi() {
     override suspend fun getUrl(url: String, referer: String?, subtitleCallback: (SubtitleFile) -> Unit, callback: (ExtractorLink) -> Unit) {
         val result = app.get(url, referer = referer).text
         val url = Regex("(?<=src: )(.*)(?=\")").find(result)?.groupValues?.get(1) ?: ""
-        callback.invoke(
-                ExtractorLink("Mp4Upload", "Mp4Upload", url, mainUrl, Qualities.Unknown.value, isM3u8 = url.contains("m3u8"))
-        )
+        callback.invoke(ExtractorLink("Mp4Upload", "Mp4Upload", url, mainUrl, Qualities.Unknown.value, isM3u8 = url.contains("m3u8")))
     }
 }
