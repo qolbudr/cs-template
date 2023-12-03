@@ -102,7 +102,7 @@ class HqnimeProvider : MainAPI() {
             }
         }
 
-        return newHomePageResponse(request.name, result.toList());
+        return newHomePageResponse(request.name, result.toList(), hasNext = false);
     }
 
     override suspend fun search(query: String): List<SearchResponse>? {
