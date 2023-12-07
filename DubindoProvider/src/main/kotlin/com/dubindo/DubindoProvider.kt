@@ -80,11 +80,11 @@ class DubindoProvider : MainAPI() {
 
     override suspend fun search(query: String): List<SearchResponse> {
         val response = app.get("$mainUrl/feeds/posts/summary?q=$query&alt=json&orderby=updated").text
-        val json = parseJson<BaseSearchResponse>(response)
+        val json = parseJson<BaseSearchDataResponse>(response)
 
         val result = ArrayList<SearchResponse>()
 
-        (json.entry ?: listOf<BaseSearchEntry>()).map {
+        (json.feed?.entry ?: listOf<BaseSearchEntry>()).map {
             val title = it.baseTitle?.title ?: "";
             val href = it.link?.firstOrNull {el -> el.rel == "alternate"}?.href ?: ""
             val posterUrl = it.thumbnail?.url ?: ""
@@ -178,7 +178,11 @@ class DubindoProvider : MainAPI() {
         return loadExtractor(data, referer, subtitleCallback, callback)
     }
 
-    data class BaseSearchResponse(
+    data class BaseSearchDataResponse(
+            @JsonProperty("feed") val feed: BaseData? = null,
+    )
+
+    data class BaseData(
             @JsonProperty("entry") val entry: ArrayList<BaseSearchEntry>? = null,
     )
 
