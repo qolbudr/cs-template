@@ -32,7 +32,7 @@ import java.net.URI
 
 class DubindoProvider : MainAPI() {
     override var mainUrl = "https://www.sontolfilm.xyz"
-    override var name = "Pojook"
+    override var name = "DubIndo"
     override val supportedTypes = setOf(TvType.Movie, TvType.TvSeries)
     override var lang = "id"
     override val hasMainPage = true
@@ -65,19 +65,19 @@ class DubindoProvider : MainAPI() {
 
         if (request.name == "Top of Week") {
             document.select("#PopularPosts1 .post").mapNotNull {
-                it.toSearchResult()
+                home.add(it.toSearchResult())
             }
         }
 
         if (request.name == "Latest Update") {
             document.select("#Blog1 .blog-post").mapNotNull {
-                it.toSearchResult()
+                home.add(it.toSearchResult())
             }
         }
 
         if (request.name == "Indonesia") {
             document.select("#myrecent2 li").mapNotNull {
-                it.toSearchResult()
+                home.add(it.toSearchResult())
             }
         }
 
