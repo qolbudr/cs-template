@@ -217,7 +217,7 @@ open class BestX : ExtractorApi() {
 
         var code = Regex("(?<=JScript = ')(.*)(?=';)").find(data)?.groupValues?.getOrNull(1)
 
-        var resJson = app.post("https://cs-backend-navy.vercel.app/bestx-extract", json = code).text
+        var resJson = app.post("https://cs-backend-navy.vercel.app/bestx-extract", data = mapOf("data" to (code ?: "")), headers = mapOf("Content-Type" to "application/json")).text
 
         var dataLink = parseJson<Response>(resJson)
 
