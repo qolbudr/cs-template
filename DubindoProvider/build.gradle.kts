@@ -1,10 +1,11 @@
 // use an integer for version numbers
-version = 6
+version = 1
+
 
 cloudstream {
     // All of these properties are optional, you can safely remove them
 
-    description = "Bolaa plugin repository"
+    description = "Dubindo plugin repository"
     authors = listOf("qolbudr")
 
     /**
@@ -20,8 +21,8 @@ cloudstream {
     // You can find a list of avaliable types here:
     // https://recloudstream.github.io/cloudstream/html/app/com.lagradost.cloudstream3/-tv-type/index.html
     tvTypes = listOf(
-            "Live",
+            "Cartoon",
+            "TvSeries",
+            "Movie"
     )
-
-    iconUrl = "https://nobarbolagratis.live/uploads/Untitled-1.png"
 }

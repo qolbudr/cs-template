@@ -68,7 +68,7 @@ class BolaaProvider : MainAPI() {
             val img = it.select(".w-5 img").mapNotNull  {imageTeam -> imageTeam.attr("src") }
             val codeImg = img.mapNotNull { codee -> Regex("(?<=team\\/)(.*)(?=.png)").find(codee)?.groupValues?.get(1) ?: "" }
 
-            val realImg = "https://bolaa-img.vercel.app/?home=${codeImg[0]}&away=${codeImg[1]}&time=$time&nameHome=${team[0] ?: "-"}&nameAway=${team[1] ?: "-"}&tournament=$tournament"
+            val realImg = "https://cs-backend-navy.vercel.app/image?home=${codeImg[0]}&away=${codeImg[1]}&time=$time&nameHome=${team[0] ?: "-"}&nameAway=${team[1] ?: "-"}&tournament=$tournament"
 
             val url = it.select("a").attr("href")
             val parsedUrl = "$mainUrl$url|$selector"
