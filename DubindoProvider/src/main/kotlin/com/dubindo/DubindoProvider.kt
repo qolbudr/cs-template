@@ -22,7 +22,6 @@ import com.lagradost.cloudstream3.utils.AppUtils
 import com.lagradost.cloudstream3.utils.AppUtils.parseJson
 import com.lagradost.cloudstream3.utils.ExtractorApi
 import com.lagradost.cloudstream3.utils.ExtractorLink
-import com.lagradost.cloudstream3.utils.M3u8Helper
 import com.lagradost.cloudstream3.utils.Qualities
 import com.lagradost.cloudstream3.utils.fixUrl
 import com.lagradost.cloudstream3.utils.getAndUnpack
@@ -222,12 +221,27 @@ open class BestX : ExtractorApi() {
 
         val dataLink = parseJson<Response>(resJson)
 
+        val headers = mapOf(
+                "Accept" to "*/*",
+                "Connection" to "keep-alive",
+                "Sec-Fetch-Dest" to "empty",
+                "Sec-Fetch-Mode" to "cors",
+                "Sec-Fetch-Site" to "cross-site",
+                "Origin" to mainUrl,
+        )
+
         dataLink?.sources?.forEach {
-            M3u8Helper.generateM3u8(
-                    name,
-                    it.file,
-                    mainUrl
-            ).forEach(callback)
+            callback.invoke(
+                    ExtractorLink(
+                            this.name,
+                            this.name,
+                            fixUrl(it.file),
+                            "$mainUrl/",
+                            Qualities.Unknown.value,
+                            headers = headers,
+                            isM3u8 = it.file.contains("m3u8")
+                    )
+            )
         }
     }
 
