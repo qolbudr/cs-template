@@ -40,13 +40,13 @@ class DubindoProvider : MainAPI() {
     override val mainPage: List<MainPageData> = mainPageOf(
             mainUrl to "Top of Week",
             mainUrl to "Latest Update",
-            mainUrl to "Indonesia",
+            "$mainUrl/search/label/Indonesia" to "Indonesia",
     )
 
     private fun Element.toSearchResult(): SearchResponse {
         val title = this.selectFirst(".post-title a")?.text()?.trim() ?: this.selectFirst(".recent-title a")?.text()?.trim()  ?: ""
         val href = this.selectFirst(".post-title a")?.attr("href") ?: this.selectFirst(".recent-title a")?.text()?.trim() ?: ""
-        val posterUrl = this.selectFirst(".rec-image img")?.attr("src")
+        val posterUrl = this.selectFirst(".rec-image img")?.attr("data-src")
 
         return if (title.contains("Season")) {
             newTvSeriesSearchResponse(title, href, TvType.TvSeries) {
@@ -69,14 +69,8 @@ class DubindoProvider : MainAPI() {
             }
         }
 
-        if (request.name == "Latest Update") {
+        if (request.name == "Latest Update" || request.name == "Indonesia") {
             document.select("#Blog1 .blog-post").mapNotNull {
-                home.add(it.toSearchResult())
-            }
-        }
-
-        if (request.name == "Indonesia") {
-            document.select("#myrecent2 li").mapNotNull {
                 home.add(it.toSearchResult())
             }
         }
@@ -114,7 +108,7 @@ class DubindoProvider : MainAPI() {
         val document = app.get(url).document
 
         val title = document.selectFirst("article.blog-post .post-title")?.text()?.trim() ?: ""
-        val poster = document.selectFirst("article.blog-post .rcimg-cover img")?.attr("src") ?: ""
+        val poster = document.selectFirst("article.blog-post .rcimg-cover img")?.attr("data-src") ?: ""
         val resOverview = document.selectFirst(".postmovie")?.text()?.trim() ?: ""
         val overview = resOverview.replace("Sinopsis:", "")
         val genres = document.select(".post-tag a").mapNotNull { it.text() }
