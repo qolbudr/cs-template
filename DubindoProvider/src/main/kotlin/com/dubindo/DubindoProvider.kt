@@ -22,6 +22,7 @@ import com.lagradost.cloudstream3.utils.AppUtils
 import com.lagradost.cloudstream3.utils.AppUtils.parseJson
 import com.lagradost.cloudstream3.utils.ExtractorApi
 import com.lagradost.cloudstream3.utils.ExtractorLink
+import com.lagradost.cloudstream3.utils.M3u8Helper
 import com.lagradost.cloudstream3.utils.Qualities
 import com.lagradost.cloudstream3.utils.fixUrl
 import com.lagradost.cloudstream3.utils.getAndUnpack
@@ -215,14 +216,18 @@ open class BestX : ExtractorApi() {
         val res = app.get(url, referer = referer).text
         val data = getAndUnpack(res)
 
-        var code = Regex("(?<=JScript = ')(.*)(?=';)").find(data)?.groupValues?.getOrNull(1)
+        val code = Regex("(?<=JScript = ')(.*)(?=';)").find(data)?.groupValues?.getOrNull(1)
 
-        var resJson = app.post("https://cs-backend-navy.vercel.app/bestx-extract", data = mapOf("data" to (code ?: "")), headers = mapOf("Content-Type" to "application/json")).text
+        val resJson = app.post("https://cs-backend-navy.vercel.app/bestx-extract", data = mapOf("data" to (code ?: "")), headers = mapOf("Content-Type" to "application/json")).text
 
-        var dataLink = parseJson<Response>(resJson)
+        val dataLink = parseJson<Response>(resJson)
 
         dataLink?.sources?.forEach {
-            callback.invoke(ExtractorLink(this.name, this.name, fixUrl(it.file), "$mainUrl/", Qualities.Unknown.value, isM3u8 = it.file.contains("m3u8")))
+            M3u8Helper.generateM3u8(
+                    name,
+                    it.file,
+                    mainUrl
+            ).forEach(callback)
         }
     }
 
