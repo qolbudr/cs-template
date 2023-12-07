@@ -1,3 +1,4 @@
+import android.util.Log
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.lagradost.cloudstream3.Episode
 import com.lagradost.cloudstream3.HomePageResponse
@@ -132,7 +133,7 @@ class DubindoProvider : MainAPI() {
                 val resEpsUrl = it.attr("data-url")
                 val epsUrl = "$host$resEpsUrl"
 
-                episode.add(Episode(epsUrl, epsTitle, 1, epsNum, poster, description = "Nonton $title episode $epsNum subtitle/dubbing indonesia"))
+                episode.add(Episode(epsUrl, epsTitle, 1, epsNum, poster, description = "Nonton $title episode $epsNum subtitle/dubbing indonesia $epsUrl"))
 
                 epsNum++
             }
@@ -219,6 +220,8 @@ open class BestX : ExtractorApi() {
 
         val resJson = app.post("https://cs-backend-navy.vercel.app/bestx-extract", data = mapOf("data" to (code ?: "")), headers = mapOf("Content-Type" to "application/json")).text
 
+        Log.i("KONTOLLLL", resJson)
+
         val dataLink = parseJson<Response>(resJson)
 
         val headers = mapOf(
@@ -230,7 +233,7 @@ open class BestX : ExtractorApi() {
                 "Origin" to mainUrl,
         )
 
-        dataLink?.sources?.forEach {
+        dataLink.sources?.forEach {
             callback.invoke(
                     ExtractorLink(
                             this.name,
