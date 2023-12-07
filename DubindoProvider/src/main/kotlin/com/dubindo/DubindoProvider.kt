@@ -176,7 +176,8 @@ class DubindoProvider : MainAPI() {
 
     override suspend fun loadLinks(data: String, isCasting: Boolean, subtitleCallback: (SubtitleFile) -> Unit, callback: (ExtractorLink) -> Unit): Boolean {
         val referer = data.getHost()
-        return loadExtractor(data, referer, subtitleCallback, callback)
+        callback.invoke(ExtractorLink("bestx", "bestx", "https://hls24-eu.zcdn.stream/1c7271c0a69e7a7694ea1df89b0b836a/2023-07-22/video.m3u8?auth=835e4fc721c0f896a40c7591011805b6&expires=1701997456&type=edge&node=M7sxtTC13snjRZB_sKBoNgk5y7HrTv4ZU_5YEpYgFpEvRBixd1iOUR_xjRLOY35z4jMR5tfqq5d6TrSMJrRlHXuCwD0cGZ408mlSpl3LV29iop5B--WfnbfqhuJy4LBLWNytZNMug8ck8G-vwFb3Rr_URVdO4G-72ng79_oioptTuSrrrYIgPeI3MXJ2396x", mainUrl, Qualities.Unknown.value, isM3u8 = true))
+        return true;
     }
 
     data class BaseSearchDataResponse(
