@@ -89,14 +89,15 @@ class DubindoProvider : MainAPI() {
             val title = it.baseTitle?.title ?: "";
             val href = it.link?.firstOrNull {el -> el.rel == "alternate"}?.href ?: ""
             val posterUrl = it.thumbnail?.url ?: ""
+            val poster = posterUrl.replace("s72-c", "w300")
 
             val itemResult = if (title.contains("Season")) {
                 newTvSeriesSearchResponse(title, href, TvType.TvSeries) {
-                    this.posterUrl = posterUrl
+                    this.posterUrl = poster
                 }
             } else {
                 newMovieSearchResponse(title, href, TvType.Movie) {
-                    this.posterUrl = posterUrl
+                    this.posterUrl = poster
                 }
             }
 
