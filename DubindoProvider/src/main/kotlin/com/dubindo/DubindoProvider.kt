@@ -106,7 +106,10 @@ class DubindoProvider : MainAPI() {
     }
 
     override suspend fun load(url: String): LoadResponse? {
-        val document = app.get(url).document
+        val body = app.get(url)
+        val document = body.document
+        val bodyText = body.text
+
 
         val title = document.selectFirst("article.blog-post .post-title")?.text()?.trim() ?: ""
         val poster = document.selectFirst("article.blog-post .rcimg-cover img")?.attr("data-src") ?: ""
@@ -117,23 +120,23 @@ class DubindoProvider : MainAPI() {
         val rating = resRating.replace("/10", "")
         val recommendations = document.select("#related-posts li").mapNotNull { it.toSearchResult() }
         val trailer = document.selectFirst("#btn-trailer")?.attr("href") ?: ""
-        val iframe = document.selectFirst("#movietop iframe")?.attr("data-src") ?: ""
 
+        val resDrive = Regex("(?<=https://drive.google.com/)(.*)(?=\" rel)").find(bodyText)?.groupValues?.get(1) ?: ""
+        val gdriveLink = "https://drive.google.com/$resDrive"
 
-        return if(iframe.contains("bestx.stream/p/")) {
+        return if(gdriveLink.contains("folders")) {
             val episode = ArrayList<Episode>()
 
-            val iframeDoc = app.get(iframe).document
-            val epsList = iframeDoc.select("span.episode")
+            val driveDoc = app.get(gdriveLink).document
+            val epsList = driveDoc.select("[data-target=doc]")
             var epsNum = 1;
 
             epsList.mapNotNull {
-                val host = "https://bestx.stream"
-                val epsTitle = it.text().trim()
-                val resEpsUrl = it.attr("data-url")
-                val epsUrl = "$host$resEpsUrl"
+                val id = it.attr("data-id")
+                val epsTitle = it.selectFirst("[data-tooltip*=\"Video\"]")?.text()?.trim() ?: ""
+                val epsUrl = "https://www.googleapis.com/drive/v3/files/$id?alt=media&key=AIzaSyDVyzmm9lL3IE08vAxwio2ubLr2EVf1ucA"
 
-                episode.add(Episode(epsUrl, epsTitle, 1, epsNum, poster, description = "Nonton $title episode $epsNum subtitle/dubbing indonesia $epsUrl"))
+                episode.add(Episode(epsUrl, epsTitle, 1, epsNum, poster, description = "Nonton $title episode $epsNum subtitle/dubbing indonesia"))
 
                 epsNum++
             }
@@ -154,11 +157,13 @@ class DubindoProvider : MainAPI() {
                 addTrailer(trailer)
             }
         } else {
+            val getId = Regex("(?<=d/)(.*)(?=/)").find(gdriveLink)?.groupValues?.get(1) ?: ""
+            val resultUrl = "https://www.googleapis.com/drive/v3/files/$getId?alt=media&key=AIzaSyDVyzmm9lL3IE08vAxwio2ubLr2EVf1ucA"
             newMovieLoadResponse(
                     title,
                     url,
                     TvType.Movie,
-                    iframe,
+                    resultUrl,
             ) {
                 this.posterUrl = poster
                 this.year = year
@@ -170,13 +175,9 @@ class DubindoProvider : MainAPI() {
             }
         }
     }
-    private fun String.getHost(): String {
-        return URI(this).host.substringBeforeLast(".").substringAfterLast(".")
-    }
 
     override suspend fun loadLinks(data: String, isCasting: Boolean, subtitleCallback: (SubtitleFile) -> Unit, callback: (ExtractorLink) -> Unit): Boolean {
-        val referer = data.getHost()
-        callback.invoke(ExtractorLink("bestx", "bestx", "https://www.googleapis.com/drive/v3/files/1Ljc2wrcvOnrhk9p8kSZnmo7E5QyKJgQW?alt=media&key=AIzaSyDVyzmm9lL3IE08vAxwio2ubLr2EVf1ucA", mainUrl, Qualities.Unknown.value, isM3u8 = false))
+        callback.invoke(ExtractorLink("GDrive", "GDrive", data, mainUrl, Qualities.Unknown.value, isM3u8 = false))
         return true;
     }
 
@@ -206,50 +207,4 @@ class DubindoProvider : MainAPI() {
     data class BaseSearchThumbnail(
             @JsonProperty("url") val url: String? = null,
     )
-}
-
-open class BestX : ExtractorApi() {
-    override val name = "BestX"
-    override val mainUrl = "https://bestx.stream"
-    override val requiresReferer = true
-
-    override suspend fun getUrl(url: String, referer: String?, subtitleCallback: (SubtitleFile) -> Unit, callback: (ExtractorLink) -> Unit) {
-        val res = app.get(url, referer = referer).text
-        val data = getAndUnpack(res)
-
-        val code = Regex("(?<=JScript = ')(.*)(?=';)").find(data)?.groupValues?.getOrNull(1)
-
-        val resJson = app.post("https://cs-backend-navy.vercel.app/bestx-extract", data = mapOf("data" to (code ?: "")), headers = mapOf("Content-Type" to "application/json")).text
-
-        Log.i("KONTOLLLL", resJson)
-
-        val dataLink = parseJson<Response>(resJson)
-
-        val headers = mapOf(
-                "Accept" to "*/*",
-                "Connection" to "keep-alive",
-                "Sec-Fetch-Dest" to "empty",
-                "Sec-Fetch-Mode" to "cors",
-                "Sec-Fetch-Site" to "cross-site",
-                "Origin" to mainUrl,
-        )
-
-        dataLink.sources?.forEach {
-            callback.invoke(
-                    ExtractorLink(
-                            this.name,
-                            this.name,
-                            fixUrl(it.file),
-                            "$mainUrl/",
-                            Qualities.Unknown.value,
-                            headers = headers,
-                            isM3u8 = it.file.contains("m3u8")
-                    )
-            )
-        }
-    }
-
-    data class Response(@JsonProperty("sources") val sources: List<FileData>)
-
-    data class FileData(@JsonProperty("file") val file: String, @JsonProperty("type") val type: String?, @JsonProperty("label") val label: String?)
 }

@@ -1,5 +1,5 @@
 // use an integer for version numbers
-version = 10
+version = 11
 
 
 cloudstream {
@@ -25,4 +25,6 @@ cloudstream {
             "TvSeries",
             "Movie"
     )
+
+    iconUrl = "https://sg-res.9appsdownloading.com/sg/res/jpg/c6/16/398d1dc95da0016cef52175d11e2-if31.jpg"
 }
