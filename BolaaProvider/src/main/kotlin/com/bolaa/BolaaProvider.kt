@@ -15,7 +15,7 @@ import com.lagradost.cloudstream3.utils.ExtractorLink
 import com.lagradost.cloudstream3.utils.Qualities
 
 class BolaaProvider : MainAPI() {
-    override var mainUrl = "https://nobarbolagratis.live"
+    override var mainUrl = "https://bangdoyok.biz"
     override var name = "Bolaa"
     override val supportedTypes = setOf(TvType.Live)
     override var lang = "id"
