@@ -50,7 +50,7 @@ class HqnimeProvider : MainAPI() {
                 val href = it.selectFirst("h4 a")?.attr("href") ?: ""
                 val quality = Qualities.Unknown.name
                 val type = TvType.Anime
-                val image = it.selectFirst(".ts-post-image")?.attr("data-lazy-src") ?: "".replace("?resize=65,85", "")
+                val image = it.selectFirst(".ts-post-image")?.attr("data-lazy-src") ?: "".replace("?resize=65,85", "?resize=247,350")
 
                 val found = newAnimeSearchResponse(title, href, type) {
                     addQuality(quality)
@@ -119,7 +119,7 @@ class HqnimeProvider : MainAPI() {
             } else {
                 TvType.Anime
             }
-            val image = it.selectFirst("img")?.attr("data-lazy-src") ?: ""
+            val image = it.selectFirst("img")?.attr("src") ?: ""
 
             val found = newAnimeSearchResponse(title, href, type) {
                 addQuality(quality)
