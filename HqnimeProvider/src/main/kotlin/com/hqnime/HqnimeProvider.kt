@@ -50,7 +50,7 @@ class HqnimeProvider : MainAPI() {
                 val href = it.selectFirst("h4 a")?.attr("href") ?: ""
                 val quality = Qualities.Unknown.name
                 val type = TvType.Anime
-                val image = it.selectFirst(".ts-post-image")?.attr("src") ?: ""
+                val image = it.selectFirst(".ts-post-image")?.attr("data-lazy-src") ?: "".replace("?resize=65,85", "")
 
                 val found = newAnimeSearchResponse(title, href, type) {
                     addQuality(quality)
@@ -70,7 +70,7 @@ class HqnimeProvider : MainAPI() {
                     val href = it.selectFirst("a")?.attr("href") ?: ""
                     val quality = Qualities.Unknown.name
                     val type = TvType.Anime
-                    val image = it.selectFirst("img")?.attr("src") ?: ""
+                    val image = it.selectFirst("img")?.attr("data-lazy-src") ?: ""
 
                     val found = newAnimeSearchResponse(title, href, type) {
                         addQuality(quality)
@@ -90,7 +90,7 @@ class HqnimeProvider : MainAPI() {
                     } else {
                         TvType.Anime
                     }
-                    val image = it.selectFirst("img")?.attr("src") ?: ""
+                    val image = it.selectFirst("img")?.attr("data-lazy-src") ?: ""
 
                     val found = newAnimeSearchResponse(title, href, type) {
                         addQuality(quality)
@@ -119,7 +119,7 @@ class HqnimeProvider : MainAPI() {
             } else {
                 TvType.Anime
             }
-            val image = it.selectFirst("img")?.attr("src") ?: ""
+            val image = it.selectFirst("img")?.attr("data-lazy-src") ?: ""
 
             val found = newAnimeSearchResponse(title, href, type) {
                 addQuality(quality)
@@ -136,7 +136,7 @@ class HqnimeProvider : MainAPI() {
         val document = app.get(url).document
         val resTitle = document.selectFirst(".entry-title")?.text()?.trim() ?: ""
         val title = resTitle.replace("Subtitle Indonesia", "")
-        val poster = document.selectFirst(".ts-post-image")?.attr("src") ?: ""
+        val poster = document.selectFirst(".ts-post-image")?.attr("data-lazy-src") ?: ""
         val year = document.selectFirst(".split")?.text()?.trim()?.split(" ")?.get(1)
         val overview = document.selectFirst(".entry-content p")?.text()?.trim()
         val tags = document.select(".genxed a").mapNotNull { it.text() }
