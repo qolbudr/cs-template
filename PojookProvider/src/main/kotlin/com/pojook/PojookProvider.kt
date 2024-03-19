@@ -249,13 +249,20 @@ class PojookProvider : MainAPI() {
                 val movieId = it.attr("data-post")
                 val idPlayer = it.attr("data-nume")
 
-                val urlPath = if(data.contains("episodes")) {
-                     "$mainUrl/wp-json/dooplayer/v2/$movieId/tv/$idPlayer"
+                val urlPath = "$mainUrl/wp-admin/admin-ajax.php";
+                val postType = if(data.contains("episodes")) {
+                    "tv"
                 } else {
-                     "$mainUrl/wp-json/dooplayer/v2/$movieId/movie/$idPlayer"
+                    "movie"
                 }
+                val postDataAjax = mapOf<String, String>(
+                        "action" to "doo_player_ajax",
+                        "post" to movieId,
+                        "nume" to idPlayer,
+                        "type" to postType,
+                )
 
-                val embedRes = app.get(urlPath).text
+                val embedRes = app.post(urlPath, data = postDataAjax).text
                 val embedData = parseJson<EmbedResponse>(embedRes)
 
                 if(embedData.embed_url.contains("fa.efek.stream")) {
