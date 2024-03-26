@@ -258,7 +258,7 @@ class PojookProvider : MainAPI() {
                 val embedRes = app.get(urlPath).text
                 val embedData = parseJson<EmbedResponse>(embedRes)
 
-                if(embedData.embed_url.contains("fa.efek.stream")) {
+                if(embedData.embed_url.contains("efek.stream")) {
                     val playerId = Regex("(?<=v\\/)(.*)(?=&)").find(embedData.embed_url)?.groupValues?.getOrNull(1)
                     val qualities = listOf<Int>(360, 720, 1080)
                     for (quality in qualities) {
