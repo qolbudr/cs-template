@@ -88,7 +88,7 @@ class AnimeindoProvider : MainAPI() {
         val resTitle = document.selectFirst("h1.text-2xl")?.text()?.trim() ?: ""
         val title = resTitle.replace("Subtitle Indonesia", "")
         val poster = document.selectFirst("img:nth-child(1)")?.attr("data-src") ?: ""
-        val year = document.selectFirst("div.text-sm:nth-child(2)")?.text()?.trim()?.split(" ")?.get(1)
+        val year = document.selectFirst("div.mb-5:nth-child(4) > div:nth-child(2)")?.text()?.trim()?.split("-")?.last()
         val overview = document.selectFirst("p.text-sm:nth-child(6)")?.text()?.trim()
         val tags = document.select("a.py-1").mapNotNull { it.text() }
         val rating = document.selectFirst("div.mb-5:nth-child(3) > div:nth-child(1)")?.text()?.trim()?.split(" ")?.get(0).toRatingInt()
@@ -102,6 +102,7 @@ class AnimeindoProvider : MainAPI() {
 
         if(type == TvType.AnimeMovie) {
             val dataURL = document.selectFirst("#allEpisode > div:nth-child(1) > a")?.attr("href") ?: ""
+
             return newMovieLoadResponse(title, dataURL, type, dataURL) {
                 this.posterUrl = poster
                 this.year = year?.toIntOrNull()
