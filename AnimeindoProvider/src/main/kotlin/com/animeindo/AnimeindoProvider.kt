@@ -42,7 +42,7 @@ class AnimeindoProvider : MainAPI() {
         val document = app.get(request.data + page).document
         val result = ArrayList<SearchResponse>()
 
-        document.select("a.animate-in > div.w-full.bg-sky-darken").mapNotNull {
+        document.select("a.animate-in").mapNotNull {
             val title = it.selectFirst("h2")?.text()?.trim() ?: ""
             val href = it.attr("href") ?: ""
             val quality = Qualities.Unknown.name
@@ -64,7 +64,7 @@ class AnimeindoProvider : MainAPI() {
         val document = app.get("$mainUrl/search/$query").document
         val result = ArrayList<SearchResponse>()
 
-        document.select("a.animate-in > div.w-full.bg-sky-darken").mapNotNull {
+        document.select("a.animate-in").mapNotNull {
             val title = it.selectFirst("h2")?.text()?.trim() ?: ""
             val href = it.attr("href") ?: ""
             val quality = Qualities.Unknown.name
